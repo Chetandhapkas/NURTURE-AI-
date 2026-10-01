@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -9,104 +10,333 @@ import "./Profile.css";
 import API from "../../services/api";
 import Sidebar from "../../components/sidebar/Sidebar";
 
-function Profile() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+/* =========================================================
+   DATE HELPERS
+========================================================= */
 
-  // =========================================================
-  // SIDEBAR
-  // =========================================================
+const parseDateInput = (value) => {
+  if (!value) {
+    return null;
+  }
 
-  const [sidebarOpen, setSidebarOpen] =
-    useState(false);
+  const parts =
+    value.split("-");
 
-  // =========================================================
-  // FETCH LOGGED-IN USER PROFILE
-  // =========================================================
+  if (parts.length !== 3) {
+    return null;
+  }
 
-  const fetchProfile = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError("");
+  const year =
+    Number(parts[0]);
 
-      const response = await API.get(
-        "/profile/me",
-        {
-          withCredentials: true,
-        }
-      );
+  const month =
+    Number(parts[1]);
 
-      const data = response.data;
+  const day =
+    Number(parts[2]);
 
-      console.log(
-        "================================="
-      );
+  if (
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    !Number.isInteger(day)
+  ) {
+    return null;
+  }
 
-      console.log(
-        "PROFILE DATA FROM BACKEND"
-      );
+  const date =
+    new Date(
+      year,
+      month - 1,
+      day
+    );
 
-      console.log(data);
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !==
+      month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
 
-      console.log(
-        "================================="
-      );
+  return date;
+};
 
-      setUser(data);
+/* =========================================================
+   GET TODAY
+========================================================= */
 
-    } catch (err) {
-      console.error(
-        "Profile Error:",
-        err
-      );
+const getToday = () => {
+  const now =
+    new Date();
 
-      if (
-        err.response?.status === 401
-      ) {
-        setError(
-          "Your login session has expired. Please login again."
-        );
+  return new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  );
+};
 
-      } else if (
-        err.response?.status === 404
-      ) {
-        setError(
-          "Profile information was not found."
-        );
+/* =========================================================
+   CALCULATE CURRENT PREGNANCY
+========================================================= */
 
-      } else {
-        setError(
-          err.response?.data?.message ||
-          err.message ||
-          "Unable to load profile information."
-        );
-      }
-
-    } finally {
-      setLoading(false);
+const calculateCurrentPregnancy =
+  (pregnancy) => {
+    if (!pregnancy) {
+      return pregnancy;
     }
-  }, []);
 
-  // =========================================================
-  // LOAD PROFILE
-  // =========================================================
+    const lmpDate =
+      parseDateInput(
+        pregnancy.lastMenstrualPeriod
+      );
+
+    if (!lmpDate) {
+      return pregnancy;
+    }
+
+    const today =
+      getToday();
+
+    const millisecondsPerDay =
+      24 * 60 * 60 * 1000;
+
+    const totalDays =
+      Math.floor(
+        (
+          today.getTime() -
+          lmpDate.getTime()
+        ) /
+          millisecondsPerDay
+      );
+
+    if (totalDays < 0) {
+      return pregnancy;
+    }
+
+    const pregnancyWeek =
+      Math.floor(
+        totalDays / 7
+      );
+
+    let trimester;
+
+    if (
+      pregnancyWeek <= 13
+    ) {
+      trimester =
+        "First Trimester";
+    } else if (
+      pregnancyWeek <= 27
+    ) {
+      trimester =
+        "Second Trimester";
+    } else {
+      trimester =
+        "Third Trimester";
+    }
+
+    return {
+      ...pregnancy,
+
+      pregnancyWeek,
+
+      pregnancyDays:
+        totalDays % 7,
+
+      trimester,
+    };
+  };
+
+/* =========================================================
+   PROFILE COMPONENT
+========================================================= */
+
+function Profile() {
+  const [
+    user,
+    setUser
+  ] = useState(null);
+
+  const [
+    loading,
+    setLoading
+  ] = useState(true);
+
+  const [
+    error,
+    setError
+  ] = useState("");
+
+  /* =======================================================
+     SIDEBAR
+  ======================================================= */
+
+  const [
+    sidebarOpen,
+    setSidebarOpen
+  ] = useState(false);
+
+  /* =======================================================
+     FETCH PROFILE
+  ======================================================= */
+
+  const fetchProfile =
+    useCallback(
+      async () => {
+        try {
+          setLoading(true);
+          setError("");
+
+          const response =
+            await API.get(
+              "/profile/me",
+              {
+                withCredentials: true,
+              }
+            );
+
+          const data =
+            response.data;
+
+          console.log(
+            "================================="
+          );
+
+          console.log(
+            "PROFILE DATA FROM BACKEND"
+          );
+
+          console.log(data);
+
+          console.log(
+            "================================="
+          );
+
+          setUser(data);
+
+        } catch (err) {
+          console.error(
+            "Profile Error:",
+            err
+          );
+
+          if (
+            err.response
+              ?.status === 401
+          ) {
+            setError(
+              "Your login session has expired. Please login again."
+            );
+          } else if (
+            err.response
+              ?.status === 404
+          ) {
+            setError(
+              "Profile information was not found."
+            );
+          } else {
+            setError(
+              err.response
+                ?.data?.message ||
+                err.message ||
+                "Unable to load profile information."
+            );
+          }
+        } finally {
+          setLoading(false);
+        }
+      },
+      []
+    );
+
+  /* =======================================================
+     LOAD PROFILE
+  ======================================================= */
 
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
 
-  // =========================================================
-  // LOADING
-  // =========================================================
+  /* =======================================================
+     CURRENT PREGNANCY
+     
+     Always calculate week/trimester
+     from LMP and today's date.
+  ======================================================= */
+
+  const currentPregnancy =
+    useMemo(() => {
+      return calculateCurrentPregnancy(
+        user?.pregnancyProfile
+      );
+    }, [user]);
+
+  /* =======================================================
+     AUTOMATIC UPDATE WHILE PAGE IS OPEN
+  ======================================================= */
+
+  const [
+    todayKey,
+    setTodayKey
+  ] = useState(
+    () =>
+      getToday().toDateString()
+  );
+
+  useEffect(() => {
+    const interval =
+      setInterval(() => {
+        const currentDay =
+          getToday().toDateString();
+
+        setTodayKey(
+          (previousDay) =>
+            previousDay ===
+            currentDay
+              ? previousDay
+              : currentDay
+        );
+      }, 60 * 1000);
+
+    return () => {
+      clearInterval(
+        interval
+      );
+    };
+  }, []);
+
+  const livePregnancy =
+    useMemo(() => {
+      /*
+        todayKey forces recalculation
+        when the calendar date changes.
+      */
+
+      return calculateCurrentPregnancy(
+        user?.pregnancyProfile
+      );
+    }, [
+      user,
+      todayKey,
+    ]);
+
+  /* =======================================================
+     LOADING
+  ======================================================= */
 
   if (loading) {
     return (
       <div className="profile-page">
 
         <Sidebar
-          isOpen={sidebarOpen}
-          setIsOpen={setSidebarOpen}
+          isOpen={
+            sidebarOpen
+          }
+          setIsOpen={
+            setSidebarOpen
+          }
         />
 
         <div className="profile-main">
@@ -115,7 +345,9 @@ function Profile() {
             type="button"
             className="profile-mobile-menu"
             onClick={() =>
-              setSidebarOpen(true)
+              setSidebarOpen(
+                true
+              )
             }
             aria-label="Open menu"
           >
@@ -143,17 +375,21 @@ function Profile() {
     );
   }
 
-  // =========================================================
-  // ERROR
-  // =========================================================
+  /* =======================================================
+     ERROR
+  ======================================================= */
 
   if (error) {
     return (
       <div className="profile-page">
 
         <Sidebar
-          isOpen={sidebarOpen}
-          setIsOpen={setSidebarOpen}
+          isOpen={
+            sidebarOpen
+          }
+          setIsOpen={
+            setSidebarOpen
+          }
         />
 
         <div className="profile-main">
@@ -162,7 +398,9 @@ function Profile() {
             type="button"
             className="profile-mobile-menu"
             onClick={() =>
-              setSidebarOpen(true)
+              setSidebarOpen(
+                true
+              )
             }
             aria-label="Open menu"
           >
@@ -186,7 +424,9 @@ function Profile() {
             <button
               className="retry-btn"
               type="button"
-              onClick={fetchProfile}
+              onClick={
+                fetchProfile
+              }
             >
               Try Again
             </button>
@@ -199,17 +439,21 @@ function Profile() {
     );
   }
 
-  // =========================================================
-  // NO USER
-  // =========================================================
+  /* =======================================================
+     NO USER
+  ======================================================= */
 
   if (!user) {
     return (
       <div className="profile-page">
 
         <Sidebar
-          isOpen={sidebarOpen}
-          setIsOpen={setSidebarOpen}
+          isOpen={
+            sidebarOpen
+          }
+          setIsOpen={
+            setSidebarOpen
+          }
         />
 
         <div className="profile-main">
@@ -218,7 +462,9 @@ function Profile() {
             type="button"
             className="profile-mobile-menu"
             onClick={() =>
-              setSidebarOpen(true)
+              setSidebarOpen(
+                true
+              )
             }
             aria-label="Open menu"
           >
@@ -242,7 +488,9 @@ function Profile() {
             <button
               className="retry-btn"
               type="button"
-              onClick={fetchProfile}
+              onClick={
+                fetchProfile
+              }
             >
               Try Again
             </button>
@@ -255,9 +503,9 @@ function Profile() {
     );
   }
 
-  // =========================================================
-  // USER INFORMATION
-  // =========================================================
+  /* =======================================================
+     USER INFORMATION
+  ======================================================= */
 
   const fullName =
     user.fullName ||
@@ -281,17 +529,22 @@ function Profile() {
     user.userId ||
     "Not available";
 
-  // =========================================================
-  // PREGNANCY PROFILE
-  // =========================================================
+  /* =======================================================
+     PREGNANCY PROFILE
+  ======================================================= */
+
+  /*
+    Use the dynamically calculated pregnancy object.
+  */
 
   const pregnancy =
-    user.pregnancyProfile ||
+    livePregnancy ||
+    currentPregnancy ||
     null;
 
-  // =========================================================
-  // PROFILE PAGE
-  // =========================================================
+  /* =======================================================
+     PROFILE PAGE
+  ======================================================= */
 
   return (
     <div className="profile-page">
@@ -301,10 +554,13 @@ function Profile() {
       ===================================================== */}
 
       <Sidebar
-        isOpen={sidebarOpen}
-        setIsOpen={setSidebarOpen}
+        isOpen={
+          sidebarOpen
+        }
+        setIsOpen={
+          setSidebarOpen
+        }
       />
-
 
       {/* =====================================================
           MAIN CONTENT
@@ -312,21 +568,20 @@ function Profile() {
 
       <div className="profile-main">
 
-        {/* =================================================
-            MOBILE MENU BUTTON
-        ================================================= */}
+        {/* MOBILE MENU */}
 
         <button
           type="button"
           className="profile-mobile-menu"
           onClick={() =>
-            setSidebarOpen(true)
+            setSidebarOpen(
+              true
+            )
           }
           aria-label="Open menu"
         >
           ☰
         </button>
-
 
         {/* =================================================
             HEADER
@@ -359,7 +614,6 @@ function Profile() {
           </button>
 
         </div>
-
 
         {/* =================================================
             PROFILE OVERVIEW
@@ -405,7 +659,6 @@ function Profile() {
 
         </div>
 
-
         {/* =================================================
             PERSONAL INFORMATION
         ================================================= */}
@@ -432,33 +685,39 @@ function Profile() {
 
           </div>
 
-
           <div className="profile-grid">
 
             <ProfileItem
               label="Full Name"
-              value={user.fullName}
+              value={
+                user.fullName
+              }
             />
 
             <ProfileItem
               label="Email Address"
-              value={user.email}
+              value={
+                user.email
+              }
             />
 
             <ProfileItem
               label="Mobile Number"
-              value={mobile}
+              value={
+                mobile
+              }
             />
 
             <ProfileItem
               label="Role"
-              value={user.role}
+              value={
+                user.role
+              }
             />
 
           </div>
 
         </div>
-
 
         {/* =================================================
             ACCOUNT INFORMATION
@@ -487,17 +746,20 @@ function Profile() {
 
           </div>
 
-
           <div className="profile-grid">
 
             <ProfileItem
               label="User ID"
-              value={userId}
+              value={
+                userId
+              }
             />
 
             <ProfileItem
               label="Account Role"
-              value={role}
+              value={
+                role
+              }
             />
 
             <ProfileItem
@@ -513,7 +775,6 @@ function Profile() {
           </div>
 
         </div>
-
 
         {/* =================================================
             PREGNANCY INFORMATION
@@ -543,10 +804,7 @@ function Profile() {
 
             </div>
 
-
-            {/* =============================================
-                PREGNANCY DETAILS
-            ============================================= */}
+            {/* PREGNANCY DETAILS */}
 
             <div className="profile-subheading">
 
@@ -555,7 +813,6 @@ function Profile() {
               </h3>
 
             </div>
-
 
             <div className="profile-grid">
 
@@ -608,10 +865,7 @@ function Profile() {
 
             </div>
 
-
-            {/* =============================================
-                PREGNANCY HISTORY
-            ============================================= */}
+            {/* PREGNANCY HISTORY */}
 
             <div className="profile-subheading">
 
@@ -620,7 +874,6 @@ function Profile() {
               </h3>
 
             </div>
-
 
             <div className="profile-grid">
 
@@ -654,10 +907,7 @@ function Profile() {
 
             </div>
 
-
-            {/* =============================================
-                PREGNANCY RISK
-            ============================================= */}
+            {/* PREGNANCY RISK */}
 
             <div className="profile-subheading">
 
@@ -667,7 +917,6 @@ function Profile() {
               </h3>
 
             </div>
-
 
             <div className="profile-grid">
 
@@ -694,10 +943,7 @@ function Profile() {
 
             </div>
 
-
-            {/* =============================================
-                DOCTOR NOTES
-            ============================================= */}
+            {/* DOCTOR NOTES */}
 
             <div className="doctor-notes">
 
@@ -722,7 +968,6 @@ function Profile() {
 
               </div>
 
-
               <div className="doctor-notes-content">
 
                 {pregnancy.doctorNotes
@@ -734,9 +979,7 @@ function Profile() {
             </div>
 
           </div>
-
         )}
-
 
         {/* =================================================
             NO PREGNANCY PROFILE
@@ -766,7 +1009,6 @@ function Profile() {
 
             </div>
 
-
             <div className="no-pregnancy">
 
               <div className="no-pregnancy-icon">
@@ -785,7 +1027,6 @@ function Profile() {
             </div>
 
           </div>
-
         )}
 
       </div>
@@ -794,13 +1035,13 @@ function Profile() {
   );
 }
 
+/* =========================================================
+   FORMAT BOOLEAN VALUES
+========================================================= */
 
-// =========================================================
-// FORMAT BOOLEAN VALUES
-// =========================================================
-
-function formatBoolean(value) {
-
+function formatBoolean(
+  value
+) {
   if (value === true) {
     return "Yes";
   }
@@ -812,16 +1053,14 @@ function formatBoolean(value) {
   return null;
 }
 
-
-// =========================================================
-// REUSABLE PROFILE ITEM
-// =========================================================
+/* =========================================================
+   REUSABLE PROFILE ITEM
+========================================================= */
 
 function ProfileItem({
   label,
   value,
 }) {
-
   return (
     <div className="profile-item">
 
@@ -842,6 +1081,5 @@ function ProfileItem({
     </div>
   );
 }
-
 
 export default Profile;

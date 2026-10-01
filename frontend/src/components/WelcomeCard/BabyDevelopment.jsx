@@ -9,293 +9,547 @@ import API from "../../services/api";
 
 import "./BabyDevelopment.css";
 
-const BabyDevelopment = () => {
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+/* =========================================================
+   DATE HELPERS
+========================================================= */
 
-  // =========================================================
-  // FETCH PROFILE
-  // =========================================================
+const parseDateInput = (
+  value
+) => {
+  if (!value) {
+    return null;
+  }
 
-  const fetchProfile = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError("");
+  const parts =
+    value.split("-");
 
-      const response = await API.get("/profile/me", {
-        withCredentials: true,
-      });
+  if (parts.length !== 3) {
+    return null;
+  }
 
-      const data = response.data;
+  const year =
+    Number(parts[0]);
 
-      console.log(
-        "BABY DEVELOPMENT PROFILE:",
-        data
-      );
+  const month =
+    Number(parts[1]);
 
-      setProfile(data);
+  const day =
+    Number(parts[2]);
 
-    } catch (err) {
-      console.error(
-        "BabyDevelopment Error:",
-        err
-      );
+  if (
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    !Number.isInteger(day)
+  ) {
+    return null;
+  }
 
-      if (err.response?.status === 401) {
-        setError(
-          "Your login session has expired. Please login again."
-        );
-      } else {
-        setError(
-          err.response?.data?.message ||
-            err.message ||
-            "Unable to load pregnancy information."
-        );
-      }
-    } finally {
-      setLoading(false);
+  const date =
+    new Date(
+      year,
+      month - 1,
+      day
+    );
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !==
+      month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return date;
+};
+
+/* =========================================================
+   TODAY
+========================================================= */
+
+const getToday = () => {
+  const now =
+    new Date();
+
+  return new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  );
+};
+
+/* =========================================================
+   CALCULATE CURRENT PREGNANCY WEEK
+========================================================= */
+
+const calculateCurrentPregnancy =
+  (pregnancy) => {
+    if (!pregnancy) {
+      return {
+        pregnancyWeek: null,
+        pregnancyDays: 0,
+        trimester: "Not available",
+      };
     }
-  }, []);
 
-  // =========================================================
-  // LOAD PROFILE
-  // =========================================================
+    const lmpDate =
+      parseDateInput(
+        pregnancy.lastMenstrualPeriod
+      );
+
+    if (!lmpDate) {
+      return {
+        pregnancyWeek:
+          pregnancy.pregnancyWeek ??
+          null,
+
+        pregnancyDays:
+          pregnancy.pregnancyDays ??
+          0,
+
+        trimester:
+          pregnancy.trimester ||
+          "Not available",
+      };
+    }
+
+    const today =
+      getToday();
+
+    const millisecondsPerDay =
+      24 * 60 * 60 * 1000;
+
+    const totalDays =
+      Math.floor(
+        (
+          today.getTime() -
+          lmpDate.getTime()
+        ) /
+          millisecondsPerDay
+      );
+
+    if (totalDays < 0) {
+      return {
+        pregnancyWeek: 0,
+        pregnancyDays: 0,
+        trimester:
+          "First Trimester",
+      };
+    }
+
+    const pregnancyWeek =
+      Math.floor(
+        totalDays / 7
+      );
+
+    let trimester;
+
+    if (
+      pregnancyWeek <= 13
+    ) {
+      trimester =
+        "First Trimester";
+    } else if (
+      pregnancyWeek <= 27
+    ) {
+      trimester =
+        "Second Trimester";
+    } else {
+      trimester =
+        "Third Trimester";
+    }
+
+    return {
+      pregnancyWeek,
+
+      pregnancyDays:
+        totalDays % 7,
+
+      trimester,
+    };
+  };
+
+/* =========================================================
+   COMPONENT
+========================================================= */
+
+const BabyDevelopment = () => {
+
+  const [
+    profile,
+    setProfile
+  ] = useState(null);
+
+  const [
+    loading,
+    setLoading
+  ] = useState(true);
+
+  const [
+    error,
+    setError
+  ] = useState("");
+
+  /* =======================================================
+     FETCH PROFILE
+  ======================================================= */
+
+  const fetchProfile =
+    useCallback(
+      async () => {
+        try {
+          setLoading(true);
+          setError("");
+
+          const response =
+            await API.get(
+              "/profile/me",
+              {
+                withCredentials: true,
+              }
+            );
+
+          const data =
+            response.data;
+
+          console.log(
+            "BABY DEVELOPMENT PROFILE:",
+            data
+          );
+
+          setProfile(
+            data
+          );
+
+        } catch (err) {
+          console.error(
+            "BabyDevelopment Error:",
+            err
+          );
+
+          if (
+            err.response
+              ?.status === 401
+          ) {
+            setError(
+              "Your login session has expired. Please login again."
+            );
+          } else {
+            setError(
+              err.response
+                ?.data?.message ||
+                err.message ||
+                "Unable to load pregnancy information."
+            );
+          }
+        } finally {
+          setLoading(
+            false
+          );
+        }
+      },
+      []
+    );
+
+  /* =======================================================
+     LOAD PROFILE
+  ======================================================= */
 
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
 
-  // =========================================================
-  // PREGNANCY PROFILE
-  // =========================================================
+  /* =======================================================
+     DAY CHANGE DETECTOR
+  ======================================================= */
 
-  const pregnancy = useMemo(() => {
-    if (!profile) {
-      return {};
-    }
+  const [
+    todayKey,
+    setTodayKey
+  ] = useState(
+    () =>
+      getToday().toDateString()
+  );
 
-    return (
-      profile.pregnancyProfile ||
-      profile.pregnancy ||
-      {}
-    );
-  }, [profile]);
+  useEffect(() => {
+    const interval =
+      setInterval(() => {
+        const currentDay =
+          getToday().toDateString();
 
-  // =========================================================
-  // PREGNANCY WEEK
-  // =========================================================
+        setTodayKey(
+          (previousDay) =>
+            previousDay ===
+            currentDay
+              ? previousDay
+              : currentDay
+        );
+      }, 60 * 1000);
 
-  const pregnancyWeek = useMemo(() => {
-    const week =
-      pregnancy.pregnancyWeek ??
-      pregnancy.currentWeek ??
-      profile?.pregnancyWeek ??
-      profile?.currentWeek;
+    return () => {
+      clearInterval(
+        interval
+      );
+    };
+  }, []);
 
-    const parsedWeek = Number(week);
+  /* =======================================================
+     PREGNANCY PROFILE
+  ======================================================= */
 
-    return Number.isFinite(parsedWeek)
-      ? parsedWeek
-      : null;
-  }, [pregnancy, profile]);
+  const pregnancy =
+    useMemo(() => {
+      if (!profile) {
+        return {};
+      }
 
-  // =========================================================
-  // TRIMESTER
-  // =========================================================
+      return (
+        profile.pregnancyProfile ||
+        profile.pregnancy ||
+        {}
+      );
+    }, [profile]);
 
-  const trimester = useMemo(() => {
-    if (pregnancy.trimester) {
-      return pregnancy.trimester;
-    }
+  /* =======================================================
+     CURRENT PREGNANCY AGE
+  ======================================================= */
 
-    if (!pregnancyWeek) {
-      return "Not available";
-    }
+  const currentPregnancy =
+    useMemo(() => {
+      /*
+        todayKey makes this calculation
+        refresh when the calendar date changes.
+      */
 
-    if (pregnancyWeek <= 13) {
-      return "First Trimester";
-    }
+      return calculateCurrentPregnancy(
+        pregnancy
+      );
+    }, [
+      pregnancy,
+      todayKey,
+    ]);
 
-    if (pregnancyWeek <= 27) {
-      return "Second Trimester";
-    }
+  /* =======================================================
+     PREGNANCY WEEK
+  ======================================================= */
 
-    return "Third Trimester";
-  }, [pregnancy, pregnancyWeek]);
+  const pregnancyWeek =
+    currentPregnancy.pregnancyWeek;
 
-  // =========================================================
-  // BABY SIZE
-  // =========================================================
+  /* =======================================================
+     TRIMESTER
+  ======================================================= */
 
-  const babyInfo = useMemo(() => {
-    if (!pregnancyWeek) {
-      return {
-        fruit: "🌱",
-        size: "Your baby",
-        description:
-          "Your baby's development information will appear here.",
-      };
-    }
+  const trimester =
+    currentPregnancy.trimester;
 
-    if (pregnancyWeek <= 4) {
-      return {
-        fruit: "🌱",
-        size: "A tiny seed",
-        description:
-          "Your baby's development is just beginning.",
-      };
-    }
+  /* =======================================================
+     BABY SIZE
+  ======================================================= */
 
-    if (pregnancyWeek <= 7) {
-      return {
-        fruit: "🫐",
-        size: "A blueberry",
-        description:
-          "Your baby is growing rapidly and important organs are beginning to develop.",
-      };
-    }
+  const babyInfo =
+    useMemo(() => {
 
-    if (pregnancyWeek <= 10) {
-      return {
-        fruit: "🍓",
-        size: "A strawberry",
-        description:
-          "Your baby's basic body structures are developing quickly.",
-      };
-    }
+      if (
+        pregnancyWeek === null ||
+        pregnancyWeek === undefined
+      ) {
+        return {
+          fruit: "🌱",
+          size: "Your baby",
+          description:
+            "Your baby's development information will appear here.",
+        };
+      }
 
-    if (pregnancyWeek <= 13) {
-      return {
-        fruit: "🍋",
-        size: "A lemon",
-        description:
-          "Your baby is becoming more active as muscles and organs continue developing.",
-      };
-    }
+      if (
+        pregnancyWeek <= 4
+      ) {
+        return {
+          fruit: "🌱",
+          size: "A tiny seed",
+          description:
+            "Your baby's development is just beginning.",
+        };
+      }
 
-    if (pregnancyWeek <= 16) {
-      return {
-        fruit: "🥑",
-        size: "An avocado",
-        description:
-          "Your baby's facial features and movements are becoming more developed.",
-      };
-    }
+      if (
+        pregnancyWeek <= 7
+      ) {
+        return {
+          fruit: "🫐",
+          size: "A blueberry",
+          description:
+            "Your baby is growing rapidly and important organs are beginning to develop.",
+        };
+      }
 
-    if (pregnancyWeek <= 20) {
-      return {
-        fruit: "🍌",
-        size: "A banana",
-        description:
-          "Your baby's senses are developing and movements may become easier to notice.",
-      };
-    }
+      if (
+        pregnancyWeek <= 10
+      ) {
+        return {
+          fruit: "🍓",
+          size: "A strawberry",
+          description:
+            "Your baby's basic body structures are developing quickly.",
+        };
+      }
 
-    if (pregnancyWeek <= 24) {
-      return {
-        fruit: "🌽",
-        size: "An ear of corn",
-        description:
-          "Your baby's hearing and other senses are continuing to develop.",
-      };
-    }
+      if (
+        pregnancyWeek <= 13
+      ) {
+        return {
+          fruit: "🍋",
+          size: "A lemon",
+          description:
+            "Your baby is becoming more active as muscles and organs continue developing.",
+        };
+      }
 
-    if (pregnancyWeek <= 27) {
-      return {
-        fruit: "🥦",
-        size: "A broccoli head",
-        description:
-          "Your baby is growing stronger and gaining more body fat.",
-      };
-    }
+      if (
+        pregnancyWeek <= 16
+      ) {
+        return {
+          fruit: "🥑",
+          size: "An avocado",
+          description:
+            "Your baby's facial features and movements are becoming more developed.",
+        };
+      }
 
-    if (pregnancyWeek <= 30) {
-      return {
-        fruit: "🍆",
-        size: "An eggplant",
-        description:
-          "Your baby's brain and nervous system are developing rapidly.",
-      };
-    }
+      if (
+        pregnancyWeek <= 20
+      ) {
+        return {
+          fruit: "🍌",
+          size: "A banana",
+          description:
+            "Your baby's senses are developing and movements may become easier to notice.",
+        };
+      }
 
-    if (pregnancyWeek <= 33) {
-      return {
-        fruit: "🥥",
-        size: "A coconut",
-        description:
-          "Your baby continues gaining weight and preparing for birth.",
-      };
-    }
+      if (
+        pregnancyWeek <= 24
+      ) {
+        return {
+          fruit: "🌽",
+          size: "An ear of corn",
+          description:
+            "Your baby's hearing and other senses are continuing to develop.",
+        };
+      }
 
-    if (pregnancyWeek <= 36) {
-      return {
-        fruit: "🍈",
-        size: "A honeydew melon",
-        description:
-          "Your baby's lungs and other organs continue maturing.",
-      };
-    }
+      if (
+        pregnancyWeek <= 27
+      ) {
+        return {
+          fruit: "🥦",
+          size: "A broccoli head",
+          description:
+            "Your baby is growing stronger and gaining more body fat.",
+        };
+      }
 
-    if (pregnancyWeek <= 39) {
+      if (
+        pregnancyWeek <= 30
+      ) {
+        return {
+          fruit: "🍆",
+          size: "An eggplant",
+          description:
+            "Your baby's brain and nervous system are developing rapidly.",
+        };
+      }
+
+      if (
+        pregnancyWeek <= 33
+      ) {
+        return {
+          fruit: "🥥",
+          size: "A coconut",
+          description:
+            "Your baby continues gaining weight and preparing for birth.",
+        };
+      }
+
+      if (
+        pregnancyWeek <= 36
+      ) {
+        return {
+          fruit: "🍈",
+          size: "A honeydew melon",
+          description:
+            "Your baby's lungs and other organs continue maturing.",
+        };
+      }
+
+      if (
+        pregnancyWeek <= 39
+      ) {
+        return {
+          fruit: "🍉",
+          size: "A small watermelon",
+          description:
+            "Your baby is getting ready for birth and continues gaining weight.",
+        };
+      }
+
       return {
         fruit: "🍉",
-        size: "A small watermelon",
+        size: "A watermelon",
         description:
-          "Your baby is getting ready for birth and continues gaining weight.",
+          "Your baby is fully developed and preparing for birth.",
       };
-    }
 
-    return {
-      fruit: "🍉",
-      size: "A watermelon",
-      description:
-        "Your baby is fully developed and preparing for birth.",
-    };
-  }, [pregnancyWeek]);
+    }, [
+      pregnancyWeek,
+    ]);
 
-  // =========================================================
-  // DUE DATE
-  // =========================================================
+  /* =======================================================
+     DUE DATE
+  ======================================================= */
 
   const dueDate =
     pregnancy.dueDate ||
     profile?.dueDate ||
     "Not available";
 
-  // =========================================================
-  // PREGNANCY TYPE
-  // =========================================================
+  /* =======================================================
+     PREGNANCY TYPE
+  ======================================================= */
 
   const pregnancyType =
     pregnancy.pregnancyType ||
     "Not available";
 
-  // =========================================================
-  // BABY COUNT
-  // =========================================================
+  /* =======================================================
+     BABY COUNT
+  ======================================================= */
 
   const babyCount =
     pregnancy.babyCount ??
-    (pregnancy.multiplePregnancy
-      ? 2
-      : 1);
+    (
+      pregnancy.multiplePregnancy
+        ? 2
+        : 1
+    );
 
-  // =========================================================
-  // LMP
-  // =========================================================
+  /* =======================================================
+     LMP
+  ======================================================= */
 
   const lastMenstrualPeriod =
     pregnancy.lastMenstrualPeriod ||
     "Not available";
 
-  // =========================================================
-  // LOADING SCREEN
-  // =========================================================
+  /* =======================================================
+     LOADING
+  ======================================================= */
 
   if (loading) {
     return (
       <div className="baby-development-page">
+
         <div className="baby-loading">
 
           <div className="loading-spinner"></div>
@@ -309,17 +563,19 @@ const BabyDevelopment = () => {
           </p>
 
         </div>
+
       </div>
     );
   }
 
-  // =========================================================
-  // ERROR SCREEN
-  // =========================================================
+  /* =======================================================
+     ERROR
+  ======================================================= */
 
   if (error) {
     return (
       <div className="baby-development-page">
+
         <div className="baby-error">
 
           <div className="error-icon">
@@ -335,20 +591,23 @@ const BabyDevelopment = () => {
           </p>
 
           <button
-            onClick={fetchProfile}
+            onClick={
+              fetchProfile
+            }
             className="retry-button"
           >
             Try Again
           </button>
 
         </div>
+
       </div>
     );
   }
 
-  // =========================================================
-  // MAIN UI
-  // =========================================================
+  /* =======================================================
+     MAIN UI
+  ======================================================= */
 
   return (
     <div className="baby-development-page">
@@ -358,6 +617,7 @@ const BabyDevelopment = () => {
       <div className="baby-page-header">
 
         <div>
+
           <h1>
             👶 Baby Development
           </h1>
@@ -365,10 +625,10 @@ const BabyDevelopment = () => {
           <p>
             Follow your baby's beautiful journey week by week.
           </p>
+
         </div>
 
       </div>
-
 
       {/* MAIN BABY CARD */}
 
@@ -382,13 +642,16 @@ const BabyDevelopment = () => {
 
         </div>
 
-
         <div className="baby-main-content">
 
           <span className="week-badge">
-            {pregnancyWeek
+
+            {pregnancyWeek !== null &&
+            pregnancyWeek !==
+              undefined
               ? `Week ${pregnancyWeek}`
               : "Pregnancy Week"}
+
           </span>
 
           <h2>
@@ -404,8 +667,9 @@ const BabyDevelopment = () => {
 
       </div>
 
-
-      {/* PREGNANCY INFORMATION */}
+      {/* =================================================
+          PREGNANCY INFORMATION
+      ================================================= */}
 
       <div className="pregnancy-info-grid">
 
@@ -416,19 +680,25 @@ const BabyDevelopment = () => {
           </div>
 
           <div>
+
             <span>
               Pregnancy Week
             </span>
 
             <strong>
-              {pregnancyWeek
+
+              {pregnancyWeek !==
+                null &&
+              pregnancyWeek !==
+                undefined
                 ? `Week ${pregnancyWeek}`
                 : "Not available"}
+
             </strong>
+
           </div>
 
         </div>
-
 
         <div className="pregnancy-info-card">
 
@@ -437,6 +707,7 @@ const BabyDevelopment = () => {
           </div>
 
           <div>
+
             <span>
               Trimester
             </span>
@@ -444,10 +715,10 @@ const BabyDevelopment = () => {
             <strong>
               {trimester}
             </strong>
+
           </div>
 
         </div>
-
 
         <div className="pregnancy-info-card">
 
@@ -456,6 +727,7 @@ const BabyDevelopment = () => {
           </div>
 
           <div>
+
             <span>
               Baby Count
             </span>
@@ -463,10 +735,10 @@ const BabyDevelopment = () => {
             <strong>
               {babyCount}
             </strong>
+
           </div>
 
         </div>
-
 
         <div className="pregnancy-info-card">
 
@@ -475,6 +747,7 @@ const BabyDevelopment = () => {
           </div>
 
           <div>
+
             <span>
               Due Date
             </span>
@@ -482,14 +755,16 @@ const BabyDevelopment = () => {
             <strong>
               {dueDate}
             </strong>
+
           </div>
 
         </div>
 
       </div>
 
-
-      {/* DEVELOPMENT SECTION */}
+      {/* =================================================
+          DEVELOPMENT SECTION
+      ================================================= */}
 
       <div className="development-section">
 
@@ -500,11 +775,12 @@ const BabyDevelopment = () => {
           </h2>
 
           <span>
-            Week {pregnancyWeek || "--"}
+            Week{" "}
+            {pregnancyWeek ??
+              "--"}
           </span>
 
         </div>
-
 
         <div className="development-content">
 
@@ -528,8 +804,9 @@ const BabyDevelopment = () => {
 
       </div>
 
-
-      {/* PREGNANCY DETAILS */}
+      {/* =================================================
+          PREGNANCY DETAILS
+      ================================================= */}
 
       <div className="pregnancy-details">
 
@@ -540,7 +817,6 @@ const BabyDevelopment = () => {
           </h2>
 
         </div>
-
 
         <div className="details-grid">
 
@@ -556,7 +832,6 @@ const BabyDevelopment = () => {
 
           </div>
 
-
           <div className="detail-item">
 
             <span>
@@ -568,7 +843,6 @@ const BabyDevelopment = () => {
             </strong>
 
           </div>
-
 
           <div className="detail-item">
 
@@ -583,7 +857,6 @@ const BabyDevelopment = () => {
             </strong>
 
           </div>
-
 
           <div className="detail-item">
 
@@ -603,8 +876,9 @@ const BabyDevelopment = () => {
 
       </div>
 
-
-      {/* HEALTH NOTE */}
+      {/* =================================================
+          HEALTH NOTE
+      ================================================= */}
 
       <div className="baby-health-note">
 

@@ -20,4 +20,8 @@ public interface MedicineLogRepository extends JpaRepository<MedicineLog, Long> 
             Long userId,
             LocalDate scheduledDate
     );
+
+    List<MedicineLog> findByScheduledDate(
+            LocalDate scheduledDate
+    );
 }

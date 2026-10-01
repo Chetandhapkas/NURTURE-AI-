@@ -1,594 +1,940 @@
+
 /* =========================================================
-   BABY DEVELOPMENT PAGE
-   NURTURE AI
-========================================================= */
+   NURTURE AI — BABY DEVELOPMENT
+   Premium Maternal Wellness UI
+   ========================================================= */
+
+:root {
+  --baby-bg: #f8f9fc;
+  --baby-white: #ffffff;
+  --baby-text: #263238;
+  --baby-muted: #7b8494;
+  --baby-primary: #8f6b9d;
+  --baby-primary-dark: #765582;
+  --baby-primary-light: #f2eaf5;
+  --baby-pink: #e9a8bb;
+  --baby-pink-light: #fdf0f4;
+  --baby-green: #7da99a;
+  --baby-green-light: #edf7f3;
+  --baby-border: #ebe8ee;
+  --baby-shadow: 0 10px 35px rgba(54, 45, 66, 0.07);
+  --baby-shadow-hover: 0 18px 45px rgba(54, 45, 66, 0.12);
+}
+
+/* =========================================================
+   PAGE
+   ========================================================= */
 
 .baby-development-page {
   min-height: 100vh;
-
-  padding: 35px;
-
+  padding: 32px 36px 50px;
   background:
     radial-gradient(
       circle at 85% 5%,
-      rgba(219, 234, 254, 0.65),
-      transparent 30%
+      rgba(233, 168, 187, 0.10),
+      transparent 28%
     ),
-    #f7faff;
+    radial-gradient(
+      circle at 5% 35%,
+      rgba(143, 107, 157, 0.07),
+      transparent 25%
+    ),
+    var(--baby-bg);
 
-  color: #172033;
+  color: var(--baby-text);
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
-
 
 /* =========================================================
    HEADER
-========================================================= */
+   ========================================================= */
 
 .baby-page-header {
   display: flex;
-
   align-items: center;
-
-  gap: 20px;
-
+  justify-content: space-between;
   margin-bottom: 28px;
 }
 
 .baby-page-header h1 {
-  margin: 0 0 5px;
-
-  font-size: 28px;
-
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.2;
   font-weight: 750;
+  letter-spacing: -0.7px;
+  color: #292332;
 }
 
 .baby-page-header p {
-  margin: 0;
-
-  color: #7b8494;
-
-  font-size: 14px;
+  margin: 8px 0 0;
+  color: var(--baby-muted);
+  font-size: 15px;
+  line-height: 1.6;
 }
-
-
-/* =========================================================
-   BACK BUTTON
-========================================================= */
-
-.back-button {
-  display: flex;
-
-  align-items: center;
-
-  gap: 8px;
-
-  padding: 10px 15px;
-
-  border: 1px solid #e1e8f0;
-
-  border-radius: 12px;
-
-  background: #ffffff;
-
-  color: #2563eb;
-
-  font-size: 13px;
-
-  font-weight: 600;
-
-  cursor: pointer;
-
-  transition: 0.2s ease;
-}
-
-.back-button:hover {
-  background: #eff6ff;
-}
-
 
 /* =========================================================
    MAIN BABY CARD
-========================================================= */
+   ========================================================= */
 
 .baby-main-card {
-  display: flex;
-
-  align-items: center;
-
-  gap: 60px;
-
-  padding: 35px;
-
-  margin-bottom: 22px;
-
-  border-radius: 25px;
-
-  background: #ffffff;
-
-  border: 1px solid #e7edf5;
-
-  box-shadow:
-    0 12px 35px rgba(15, 23, 42, 0.07);
-}
-
-
-/* =========================================================
-   BABY VISUAL
-========================================================= */
-
-.baby-visual {
-  width: 260px;
-
-  text-align: center;
-
-  flex-shrink: 0;
-}
-
-.large-fruit-circle {
-  width: 170px;
-  height: 170px;
-
-  margin: auto;
-
-  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
 
   display: flex;
-
   align-items: center;
-  justify-content: center;
+  gap: 30px;
+
+  min-height: 230px;
+  padding: 34px 38px;
+
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 26px;
 
   background:
     linear-gradient(
-      145deg,
-      #eff6ff,
-      #dbeafe
+      135deg,
+      #ffffff 0%,
+      #fffafd 52%,
+      #f8f0fa 100%
     );
 
-  border: 8px solid #ffffff;
+  box-shadow: var(--baby-shadow);
 
-  box-shadow:
-    0 15px 35px rgba(59, 130, 246, 0.16);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
-.large-fruit-circle span {
-  font-size: 85px;
+.baby-main-card::before {
+  content: "";
+  position: absolute;
 
-  line-height: 1;
+  width: 230px;
+  height: 230px;
+
+  right: -80px;
+  top: -100px;
+
+  border-radius: 50%;
+
+  background: rgba(233, 168, 187, 0.13);
 }
 
-.baby-visual h2 {
-  margin: 15px 0 5px;
+.baby-main-card::after {
+  content: "";
+  position: absolute;
 
-  font-size: 20px;
+  width: 140px;
+  height: 140px;
 
-  text-transform: capitalize;
+  left: 32%;
+  bottom: -100px;
+
+  border-radius: 50%;
+
+  background: rgba(143, 107, 157, 0.08);
 }
 
-.baby-visual p {
-  margin: 0;
-
-  font-size: 12px;
-
-  color: #8a94a6;
+.baby-main-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--baby-shadow-hover);
 }
-
 
 /* =========================================================
-   BABY INFORMATION
-========================================================= */
+   BABY VISUAL
+   ========================================================= */
 
-.baby-information {
+.baby-emoji-container {
+  position: relative;
+  z-index: 2;
+
+  flex: 0 0 150px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 150px;
+  height: 150px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      #ffffff,
+      #f7eaf7 65%,
+      #eedfee
+    );
+
+  box-shadow:
+    inset 0 0 0 1px rgba(143, 107, 157, 0.08),
+    0 12px 28px rgba(104, 72, 111, 0.10);
+}
+
+.baby-emoji-container::before {
+  content: "";
+  position: absolute;
+
+  width: 174px;
+  height: 174px;
+
+  border-radius: 50%;
+
+  border: 1px dashed rgba(143, 107, 157, 0.20);
+
+  animation: gentleRotate 18s linear infinite;
+}
+
+.baby-fruit {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 76px;
+
+  filter:
+    drop-shadow(0 7px 7px rgba(72, 54, 78, 0.12));
+
+  animation: gentleFloat 4s ease-in-out infinite;
+}
+
+/* =========================================================
+   BABY MAIN CONTENT
+   ========================================================= */
+
+.baby-main-content {
+  position: relative;
+  z-index: 2;
+
   flex: 1;
 }
 
 .week-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
 
   padding: 7px 13px;
 
-  margin-bottom: 15px;
+  border-radius: 999px;
 
-  border-radius: 20px;
-
-  background: #eff6ff;
-
-  color: #2563eb;
+  background: var(--baby-primary-light);
+  color: var(--baby-primary-dark);
 
   font-size: 12px;
-
-  font-weight: 700;
+  font-weight: 750;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
 }
 
-.baby-information h2 {
-  margin: 0 0 8px;
+.baby-main-content h2 {
+  max-width: 720px;
 
-  font-size: 18px;
+  margin: 13px 0 9px;
 
-  color: #6b7280;
+  color: #292332;
 
-  font-weight: 500;
+  font-size: 27px;
+  line-height: 1.3;
+  font-weight: 730;
+  letter-spacing: -0.5px;
 }
 
-.baby-information h1 {
-  max-width: 550px;
+.baby-main-content p {
+  max-width: 720px;
 
   margin: 0;
 
-  font-size: 32px;
+  color: #727989;
 
-  line-height: 1.25;
-
-  color: #172033;
+  font-size: 15px;
+  line-height: 1.75;
 }
-
-.trimester-text {
-  margin-top: 15px;
-
-  font-size: 14px;
-
-  color: #64748b;
-
-  font-weight: 600;
-}
-
 
 /* =========================================================
-   DEVELOPMENT CARD
-========================================================= */
+   PREGNANCY INFORMATION GRID
+   ========================================================= */
 
-.development-card {
-  padding: 28px;
+.pregnancy-info-grid {
+  display: grid;
 
-  margin-bottom: 20px;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 17px;
+
+  margin-top: 22px;
+}
+
+.pregnancy-info-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  min-height: 86px;
+  padding: 17px 18px;
+
+  border: 1px solid var(--baby-border);
+  border-radius: 18px;
+
+  background: rgba(255, 255, 255, 0.88);
+
+  box-shadow:
+    0 5px 20px rgba(47, 40, 57, 0.045);
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.pregnancy-info-card:hover {
+  transform: translateY(-4px);
+
+  border-color: rgba(143, 107, 157, 0.20);
+
+  box-shadow:
+    0 14px 30px rgba(47, 40, 57, 0.09);
+}
+
+.info-card-icon {
+  flex: 0 0 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 48px;
+  height: 48px;
+
+  border-radius: 14px;
+
+  background: var(--baby-pink-light);
+
+  font-size: 21px;
+
+  transition: transform 0.25s ease;
+}
+
+.pregnancy-info-card:nth-child(2) .info-card-icon {
+  background: var(--baby-primary-light);
+}
+
+.pregnancy-info-card:nth-child(3) .info-card-icon {
+  background: var(--baby-green-light);
+}
+
+.pregnancy-info-card:nth-child(4) .info-card-icon {
+  background: #f5f1e9;
+}
+
+.pregnancy-info-card:hover .info-card-icon {
+  transform: scale(1.08) rotate(-3deg);
+}
+
+.pregnancy-info-card span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--baby-muted);
+
+  font-size: 12px;
+  font-weight: 550;
+}
+
+.pregnancy-info-card strong {
+  display: block;
+
+  color: #30303a;
+
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* =========================================================
+   SECTION COMMON
+   ========================================================= */
+
+.development-section,
+.pregnancy-details {
+  margin-top: 24px;
+
+  padding: 26px 28px;
+
+  border: 1px solid var(--baby-border);
+  border-radius: 22px;
+
+  background: rgba(255, 255, 255, 0.94);
+
+  box-shadow: var(--baby-shadow);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  margin-bottom: 22px;
+}
+
+.section-header h2 {
+  margin: 0;
+
+  color: #302a36;
+
+  font-size: 19px;
+  font-weight: 730;
+  letter-spacing: -0.25px;
+}
+
+.section-header > span {
+  padding: 7px 12px;
+
+  border-radius: 999px;
+
+  background: #f6f1f7;
+  color: var(--baby-primary-dark);
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* =========================================================
+   DEVELOPMENT CONTENT
+   ========================================================= */
+
+.development-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+
+  padding: 22px;
+
+  border-radius: 17px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fcf8fd,
+      #fffafb
+    );
+
+  border: 1px solid #f0e9f1;
+}
+
+.development-icon {
+  flex: 0 0 82px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 82px;
+  height: 82px;
 
   border-radius: 22px;
 
   background: #ffffff;
 
-  border: 1px solid #e7edf5;
+  font-size: 43px;
 
   box-shadow:
-    0 8px 25px rgba(15, 23, 42, 0.05);
+    0 8px 22px rgba(67, 50, 72, 0.08);
 }
 
+.development-content h3 {
+  margin: 0 0 7px;
 
-/* =========================================================
-   SECTION TITLE
-========================================================= */
+  color: #35303a;
 
-.section-title {
-  display: flex;
-
-  align-items: center;
-
-  gap: 13px;
-
-  margin-bottom: 22px;
+  font-size: 17px;
+  font-weight: 720;
 }
 
-.section-icon {
-  width: 42px;
-  height: 42px;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 13px;
-
-  background: #eff6ff;
-
-  color: #2563eb;
-}
-
-.section-title h2 {
-  margin: 0 0 3px;
-
-  font-size: 19px;
-}
-
-.section-title p {
+.development-content p {
   margin: 0;
 
-  font-size: 12px;
+  color: #777d8b;
 
-  color: #8a94a6;
+  font-size: 14px;
+  line-height: 1.7;
 }
 
-
 /* =========================================================
-   DEVELOPMENT LIST
-========================================================= */
+   PREGNANCY DETAILS
+   ========================================================= */
 
-.development-list {
+.details-grid {
   display: grid;
 
   grid-template-columns:
-    repeat(3, 1fr);
+    repeat(2, minmax(0, 1fr));
 
-  gap: 15px;
+  gap: 14px;
 }
 
-.development-item {
-  display: flex;
+.detail-item {
+  position: relative;
 
-  gap: 10px;
+  padding: 18px 20px;
 
-  padding: 16px;
+  border: 1px solid #efedf1;
+  border-radius: 16px;
 
-  border-radius: 15px;
+  background: #fcfcfd;
 
-  background: #f8fafc;
-
-  border: 1px solid #edf1f6;
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease,
+    border-color 0.25s ease;
 }
 
-.check-icon {
-  width: 23px;
-  height: 23px;
+.detail-item:hover {
+  transform: translateY(-2px);
 
-  display: flex;
+  background: #ffffff;
 
-  align-items: center;
-  justify-content: center;
+  border-color: rgba(143, 107, 157, 0.20);
+}
 
-  flex-shrink: 0;
+.detail-item span {
+  display: block;
 
-  border-radius: 50%;
+  margin-bottom: 7px;
 
-  background: #dbeafe;
-
-  color: #2563eb;
+  color: #8a8f9c;
 
   font-size: 12px;
-
-  font-weight: 800;
+  font-weight: 600;
 }
 
-.development-item p {
-  margin: 0;
+.detail-item strong {
+  display: block;
 
-  font-size: 13px;
+  color: #37323d;
 
-  line-height: 1.5;
-
-  color: #5f6b7a;
+  font-size: 15px;
+  font-weight: 700;
 }
-
 
 /* =========================================================
-   MOM TIP
-========================================================= */
+   HEALTH NOTE
+   ========================================================= */
 
-.mom-tip-card {
+.baby-health-note {
   display: flex;
-
   align-items: center;
+  gap: 18px;
 
-  gap: 15px;
+  margin-top: 24px;
+  padding: 22px 25px;
 
-  padding: 22px;
-
+  border: 1px solid rgba(125, 169, 154, 0.20);
   border-radius: 20px;
 
   background:
     linear-gradient(
       135deg,
-      #eff6ff,
-      #f8fbff
+      #f4faf7,
+      #fbfdfc
     );
 
-  border: 1px solid #dbeafe;
+  box-shadow:
+    0 8px 25px rgba(64, 92, 81, 0.055);
 }
 
-.tip-icon {
-  width: 45px;
-  height: 45px;
+.health-note-icon {
+  flex: 0 0 50px;
 
   display: flex;
-
   align-items: center;
   justify-content: center;
 
-  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
 
-  border-radius: 14px;
+  border-radius: 15px;
 
-  background: #ffffff;
+  background: #e7f4ee;
 
-  color: #2563eb;
-
-  box-shadow:
-    0 5px 15px rgba(37, 99, 235, 0.08);
+  font-size: 22px;
 }
 
-.mom-tip-card h2 {
+.baby-health-note h3 {
   margin: 0 0 5px;
 
-  font-size: 16px;
+  color: #3c5149;
+
+  font-size: 15px;
+  font-weight: 720;
 }
 
-.mom-tip-card p {
+.baby-health-note p {
   margin: 0;
 
+  color: #77857f;
+
   font-size: 13px;
-
-  line-height: 1.5;
-
-  color: #64748b;
+  line-height: 1.65;
 }
-
-
-/* =========================================================
-   DISCLAIMER
-========================================================= */
-
-.baby-disclaimer {
-  margin: 18px auto 0;
-
-  max-width: 800px;
-
-  text-align: center;
-
-  font-size: 11px;
-
-  line-height: 1.5;
-
-  color: #94a3b8;
-}
-
 
 /* =========================================================
    LOADING
-========================================================= */
+   ========================================================= */
 
 .baby-loading {
-  min-height: 70vh;
+  min-height: 430px;
 
   display: flex;
-
   flex-direction: column;
-
   align-items: center;
   justify-content: center;
 
   text-align: center;
 }
 
-.loading-fruit {
-  font-size: 60px;
+.loading-spinner {
+  width: 46px;
+  height: 46px;
 
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+
+  border: 3px solid #eee8f0;
+  border-top-color: var(--baby-primary);
+
+  border-radius: 50%;
+
+  animation: spin 0.85s linear infinite;
 }
 
-.baby-loading h2 {
-  margin: 0 0 5px;
+.baby-loading h3 {
+  margin: 0 0 7px;
 
-  font-size: 20px;
+  color: #37313d;
+
+  font-size: 17px;
 }
 
 .baby-loading p {
   margin: 0;
 
-  color: #7b8494;
-}
+  color: var(--baby-muted);
 
+  font-size: 13px;
+}
 
 /* =========================================================
    ERROR
-========================================================= */
+   ========================================================= */
 
 .baby-error {
-  min-height: 70vh;
+  max-width: 520px;
 
+  margin: 80px auto;
+  padding: 36px;
+
+  text-align: center;
+
+  border: 1px solid #f0e4e8;
+  border-radius: 22px;
+
+  background: #ffffff;
+
+  box-shadow: var(--baby-shadow);
+}
+
+.error-icon {
   display: flex;
-
-  flex-direction: column;
-
   align-items: center;
   justify-content: center;
 
-  text-align: center;
+  width: 62px;
+  height: 62px;
+
+  margin: 0 auto 18px;
+
+  border-radius: 50%;
+
+  background: #fff2f4;
+
+  font-size: 27px;
 }
 
-.baby-error h2 {
-  margin-bottom: 5px;
+.baby-error h3 {
+  margin: 0 0 8px;
+
+  color: #37313d;
+
+  font-size: 19px;
 }
 
 .baby-error p {
-  color: #7b8494;
+  margin: 0 0 22px;
+
+  color: #7d828e;
+
+  font-size: 14px;
+  line-height: 1.6;
 }
 
-.baby-error button {
-  margin-top: 10px;
+.retry-button {
+  border: 0;
 
-  padding: 10px 18px;
+  padding: 11px 22px;
 
-  border: none;
+  border-radius: 11px;
 
-  border-radius: 10px;
-
-  background: #2563eb;
+  background:
+    linear-gradient(
+      135deg,
+      var(--baby-primary),
+      var(--baby-primary-dark)
+    );
 
   color: #ffffff;
 
+  font-size: 13px;
+  font-weight: 700;
+
   cursor: pointer;
+
+  box-shadow:
+    0 7px 18px rgba(118, 85, 130, 0.20);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
+.retry-button:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 24px rgba(118, 85, 130, 0.28);
+}
+
+.retry-button:active {
+  transform: translateY(0);
+}
 
 /* =========================================================
-   RESPONSIVE
-========================================================= */
+   ANIMATIONS
+   ========================================================= */
 
-@media (max-width: 850px) {
+@keyframes gentleFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
 
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@keyframes gentleRotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1100px) {
   .baby-development-page {
-    padding: 25px;
+    padding: 28px 24px 45px;
+  }
+
+  .pregnancy-info-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
   }
 
   .baby-main-card {
-    flex-direction: column;
-
-    gap: 25px;
-
-    text-align: center;
+    padding: 30px;
   }
 
-  .baby-information {
-    width: 100%;
+  .baby-main-content h2 {
+    font-size: 24px;
   }
-
-  .baby-information h1 {
-    margin: auto;
-  }
-
-  .development-list {
-    grid-template-columns: 1fr;
-  }
-
 }
 
+/* =========================================================
+   MOBILE
+   ========================================================= */
 
-@media (max-width: 600px) {
-
+@media (max-width: 700px) {
   .baby-development-page {
-    padding: 18px;
+    padding: 20px 15px 35px;
   }
 
   .baby-page-header {
-    align-items: flex-start;
-
-    flex-direction: column;
+    margin-bottom: 20px;
   }
 
   .baby-page-header h1 {
-    font-size: 23px;
+    font-size: 24px;
+  }
+
+  .baby-page-header p {
+    font-size: 13px;
   }
 
   .baby-main-card {
-    padding: 25px 18px;
+    flex-direction: column;
+
+    text-align: center;
+
+    padding: 28px 20px;
+
+    border-radius: 22px;
   }
 
-  .baby-visual {
-    width: 100%;
+  .baby-emoji-container {
+    flex-basis: 120px;
+
+    width: 120px;
+    height: 120px;
   }
 
-  .large-fruit-circle {
+  .baby-emoji-container::before {
     width: 140px;
     height: 140px;
   }
 
-  .large-fruit-circle span {
-    font-size: 70px;
+  .baby-fruit {
+    font-size: 60px;
   }
 
-  .baby-information h1 {
-    font-size: 25px;
+  .baby-main-content h2 {
+    font-size: 21px;
   }
 
-  .development-card {
-    padding: 20px;
+  .baby-main-content p {
+    font-size: 13px;
   }
 
+  .pregnancy-info-grid {
+    grid-template-columns: 1fr;
+
+    gap: 12px;
+  }
+
+  .pregnancy-info-card {
+    min-height: 76px;
+  }
+
+  .development-section,
+  .pregnancy-details {
+    padding: 21px 17px;
+
+    border-radius: 19px;
+  }
+
+  .section-header {
+    align-items: flex-start;
+  }
+
+  .section-header h2 {
+    font-size: 17px;
+  }
+
+  .development-content {
+    flex-direction: column;
+
+    text-align: center;
+
+    padding: 20px 15px;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .baby-health-note {
+    align-items: flex-start;
+
+    padding: 18px;
+  }
 }
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 420px) {
+  .baby-development-page {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .baby-page-header h1 {
+    font-size: 22px;
+  }
+
+  .baby-main-card {
+    padding: 24px 16px;
+  }
+
+  .baby-main-content h2 {
+    font-size: 19px;
+  }
+
+  .pregnancy-info-card {
+    padding: 14px;
+  }
+
+  .info-card-icon {
+    width: 43px;
+    height: 43px;
+
+    flex-basis: 43px;
+  }
+
+  .development-icon {
+    width: 70px;
+    height: 70px;
+
+    flex-basis: 70px;
+
+    font-size: 35px;
+  }
+}
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+

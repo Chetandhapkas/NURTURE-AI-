@@ -1,7 +1,10 @@
+
 import Navbar from "../../components/Navbar/Navbar";
 import WelcomeCard from "../../components/WelcomeCard/WelcomeCard";
 import HealthSummary from "../../components/HealthSummary/HealthSummary";
 import AppointmentCard from "../../components/AppointmentCard/AppointmentCard";
+
+import NotificationPermission from "../../components/Notification/NotificationPermission";
 
 import "./dashboard.css";
 
@@ -17,6 +20,9 @@ function Dashboard() {
 
           {/* Welcome */}
           <WelcomeCard />
+
+          {/* Notification Permission */}
+          <NotificationPermission />
 
           {/* Health Summary */}
           <HealthSummary />

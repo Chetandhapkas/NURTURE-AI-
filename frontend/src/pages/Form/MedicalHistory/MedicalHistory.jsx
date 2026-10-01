@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./MedicalHistory.css";
 
-const API_BASE_URL = "http://localhost:8080";
+const API_BASE_URL = "";
 
 const MedicalHistory = () => {
     const navigate = useNavigate();
@@ -65,7 +65,7 @@ const MedicalHistory = () => {
             );
 
             const response = await axios.get(
-                `${API_BASE_URL}/api/medical-history/${id}`
+                `${API_BASE_URL}/api/medical-history/${userId}`
             );
 
             console.log(

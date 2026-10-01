@@ -25,12 +25,7 @@ const defaultFormData = {
   lastMenstrualPeriod: "",
   pregnancyType: "Natural",
 
-  /*
-    Automatically derived from pregnancyType.
-
-    Natural -> false
-    IVF     -> true
-  */
+  /* Automatically derived */
   ivfPregnancy: false,
 
   babyCount: 1,
@@ -77,7 +72,11 @@ const parseDateInput = (value) => {
     return null;
   }
 
-  const date = new Date(year, month - 1, day);
+  const date = new Date(
+    year,
+    month - 1,
+    day
+  );
 
   if (
     date.getFullYear() !== year ||
@@ -108,6 +107,10 @@ const formatDateInput = (date) => {
   return `${year}-${month}-${day}`;
 };
 
+/* =========================================================
+   CURRENT DATE
+========================================================= */
+
 const getToday = () => {
   const now = new Date();
 
@@ -118,6 +121,10 @@ const getToday = () => {
   );
 };
 
+/* =========================================================
+   DAYS DIFFERENCE
+========================================================= */
+
 const getDaysDifference = (
   startDate,
   endDate
@@ -126,8 +133,10 @@ const getDaysDifference = (
     24 * 60 * 60 * 1000;
 
   return Math.floor(
-    (endDate.getTime() - startDate.getTime()) /
-      millisecondsPerDay
+    (
+      endDate.getTime() -
+      startDate.getTime()
+    ) / millisecondsPerDay
   );
 };
 
@@ -136,23 +145,33 @@ const getDaysDifference = (
 ========================================================= */
 
 const calculateDueDate = (lmp) => {
-  const lmpDate = parseDateInput(lmp);
+  const lmpDate =
+    parseDateInput(lmp);
 
   if (!lmpDate) {
     return "";
   }
 
-  const dueDate = new Date(lmpDate);
+  const dueDate =
+    new Date(lmpDate);
 
   dueDate.setDate(
-    dueDate.getDate() + DUE_DATE_DAYS
+    dueDate.getDate() +
+      DUE_DATE_DAYS
   );
 
-  return formatDateInput(dueDate);
+  return formatDateInput(
+    dueDate
+  );
 };
 
+/* =========================================================
+   CALCULATE CURRENT PREGNANCY AGE
+========================================================= */
+
 const calculatePregnancyAge = (lmp) => {
-  const lmpDate = parseDateInput(lmp);
+  const lmpDate =
+    parseDateInput(lmp);
 
   if (!lmpDate) {
     return {
@@ -162,12 +181,14 @@ const calculatePregnancyAge = (lmp) => {
     };
   }
 
-  const today = getToday();
+  const today =
+    getToday();
 
-  const totalDays = getDaysDifference(
-    lmpDate,
-    today
-  );
+  const totalDays =
+    getDaysDifference(
+      lmpDate,
+      today
+    );
 
   if (totalDays < 0) {
     return {
@@ -178,14 +199,28 @@ const calculatePregnancyAge = (lmp) => {
   }
 
   return {
-    weeks: Math.floor(totalDays / 7),
-    days: totalDays % 7,
+    weeks: Math.floor(
+      totalDays / 7
+    ),
+
+    days:
+      totalDays % 7,
+
     totalDays,
   };
 };
 
-const calculateTrimester = (weeks) => {
-  if (!Number.isInteger(weeks) || weeks < 0) {
+/* =========================================================
+   CALCULATE TRIMESTER
+========================================================= */
+
+const calculateTrimester = (
+  weeks
+) => {
+  if (
+    !Number.isInteger(weeks) ||
+    weeks < 0
+  ) {
     return "";
   }
 
@@ -200,7 +235,13 @@ const calculateTrimester = (weeks) => {
   return "Third Trimester";
 };
 
-const calculateTimeline = (lmp) => {
+/* =========================================================
+   CALCULATE COMPLETE TIMELINE
+========================================================= */
+
+const calculateTimeline = (
+  lmp
+) => {
   if (!lmp) {
     return {
       dueDate: "",
@@ -210,13 +251,23 @@ const calculateTimeline = (lmp) => {
     };
   }
 
-  const age = calculatePregnancyAge(lmp);
+  const age =
+    calculatePregnancyAge(lmp);
 
   return {
-    dueDate: calculateDueDate(lmp),
-    pregnancyWeek: age.weeks,
-    pregnancyDays: age.days,
-    trimester: calculateTrimester(age.weeks),
+    dueDate:
+      calculateDueDate(lmp),
+
+    pregnancyWeek:
+      age.weeks,
+
+    pregnancyDays:
+      age.days,
+
+    trimester:
+      calculateTrimester(
+        age.weeks
+      ),
   };
 };
 
@@ -224,10 +275,15 @@ const calculateTimeline = (lmp) => {
    NUMBER HELPER
 ========================================================= */
 
-const toNonNegativeInteger = (value) => {
-  const number = Number(value);
+const toNonNegativeInteger = (
+  value
+) => {
+  const number =
+    Number(value);
 
-  if (!Number.isFinite(number)) {
+  if (
+    !Number.isFinite(number)
+  ) {
     return 0;
   }
 
@@ -241,8 +297,13 @@ const toNonNegativeInteger = (value) => {
    BOOLEAN HELPER
 ========================================================= */
 
-const toBoolean = (value) => {
-  return value === true || value === "true";
+const toBoolean = (
+  value
+) => {
+  return (
+    value === true ||
+    value === "true"
+  );
 };
 
 /* =========================================================
@@ -250,22 +311,35 @@ const toBoolean = (value) => {
 ========================================================= */
 
 const PregnancyDetails = () => {
-  const navigate = useNavigate();
+  const navigate =
+    useNavigate();
 
-  const [formData, setFormData] =
-    useState(defaultFormData);
+  const [
+    formData,
+    setFormData
+  ] = useState(
+    defaultFormData
+  );
 
-  const [loading, setLoading] =
-    useState(false);
+  const [
+    loading,
+    setLoading
+  ] = useState(false);
 
-  const [fetching, setFetching] =
-    useState(true);
+  const [
+    fetching,
+    setFetching
+  ] = useState(true);
 
-  const [profileExists, setProfileExists] =
-    useState(false);
+  const [
+    profileExists,
+    setProfileExists
+  ] = useState(false);
 
-  const [error, setError] =
-    useState("");
+  const [
+    error,
+    setError
+  ] = useState("");
 
   /* =======================================================
      USER ID
@@ -273,8 +347,12 @@ const PregnancyDetails = () => {
 
   const getUserId = () => {
     return (
-      localStorage.getItem("userId") ||
-      sessionStorage.getItem("userId")
+      localStorage.getItem(
+        "userId"
+      ) ||
+      sessionStorage.getItem(
+        "userId"
+      )
     );
   };
 
@@ -282,7 +360,9 @@ const PregnancyDetails = () => {
      SAVE DRAFT
   ======================================================= */
 
-  const saveDraft = (data) => {
+  const saveDraft = (
+    data
+  ) => {
     try {
       sessionStorage.setItem(
         DRAFT_KEY,
@@ -300,7 +380,9 @@ const PregnancyDetails = () => {
      NORMALIZE BACKEND DATA
   ======================================================= */
 
-  const normalizeData = (data) => {
+  const normalizeData = (
+    data
+  ) => {
     const previousPregnancies =
       toNonNegativeInteger(
         data?.previousPregnancies
@@ -309,36 +391,37 @@ const PregnancyDetails = () => {
     const firstPregnancy =
       previousPregnancies === 0;
 
-    const babyCount = Math.max(
-      1,
-      toNonNegativeInteger(
-        data?.babyCount ?? 1
-      )
-    );
+    const babyCount =
+      Math.max(
+        1,
+        toNonNegativeInteger(
+          data?.babyCount ?? 1
+        )
+      );
 
     const pregnancyType =
-      data?.pregnancyType || "Natural";
-
-    /*
-      IMPORTANT
-
-      IVF status is NOT taken independently
-      from backend.
-
-      It is always calculated from pregnancyType.
-    */
+      data?.pregnancyType ||
+      "Natural";
 
     const ivfPregnancy =
       pregnancyType === "IVF";
 
+    /*
+      IMPORTANT:
+      Week, days, due date and trimester
+      are ALWAYS recalculated from LMP.
+    */
+
     const timeline =
       calculateTimeline(
-        data?.lastMenstrualPeriod || ""
+        data?.lastMenstrualPeriod ||
+          ""
       );
 
     return {
       lastMenstrualPeriod:
-        data?.lastMenstrualPeriod || "",
+        data?.lastMenstrualPeriod ||
+        "",
 
       pregnancyType,
 
@@ -373,7 +456,9 @@ const PregnancyDetails = () => {
         ),
 
       highRisk:
-        toBoolean(data?.highRisk),
+        toBoolean(
+          data?.highRisk
+        ),
 
       doctorNotes:
         data?.doctorNotes || "",
@@ -388,116 +473,200 @@ const PregnancyDetails = () => {
     loadPregnancyDetails();
   }, []);
 
-  const loadPregnancyDetails = async () => {
-    const userId = getUserId();
+  const loadPregnancyDetails =
+    async () => {
+      const userId =
+        getUserId();
 
-    if (!userId) {
-      setError(
-        "User not found. Please login again."
-      );
+      if (!userId) {
+        setError(
+          "User not found. Please login again."
+        );
 
-      setFetching(false);
+        setFetching(false);
+        return;
+      }
+
+      try {
+        setFetching(true);
+        setError("");
+
+        try {
+          const response =
+            await getPregnancyDetails(
+              Number(userId)
+            );
+
+          const backendData =
+            response?.data?.data ||
+            response?.data;
+
+          if (
+            backendData &&
+            (
+              backendData.id ||
+              backendData.pregnancyId ||
+              backendData.lastMenstrualPeriod
+            )
+          ) {
+            setProfileExists(
+              true
+            );
+
+            const normalized =
+              normalizeData(
+                backendData
+              );
+
+            setFormData(
+              normalized
+            );
+
+            sessionStorage.removeItem(
+              DRAFT_KEY
+            );
+
+            return;
+          }
+        } catch (
+          backendError
+        ) {
+          if (
+            backendError.response
+              ?.status !== 404
+          ) {
+            throw backendError;
+          }
+        }
+
+        /* =================================================
+           LOAD DRAFT
+        ================================================= */
+
+        const draft =
+          sessionStorage.getItem(
+            DRAFT_KEY
+          );
+
+        if (draft) {
+          try {
+            const parsed =
+              JSON.parse(draft);
+
+            setFormData(
+              normalizeData(
+                parsed
+              )
+            );
+          } catch (err) {
+            console.error(
+              "Invalid pregnancy draft:",
+              err
+            );
+
+            sessionStorage.removeItem(
+              DRAFT_KEY
+            );
+          }
+        }
+      } catch (err) {
+        console.error(
+          "Pregnancy loading error:",
+          err
+        );
+
+        setError(
+          "Unable to load pregnancy information."
+        );
+      } finally {
+        setFetching(false);
+      }
+    };
+
+  /* =======================================================
+     AUTOMATIC DAILY FRONTEND UPDATE
+     
+     If this page remains open overnight,
+     the week/trimester will update automatically.
+  ======================================================= */
+
+  useEffect(() => {
+    if (
+      !formData.lastMenstrualPeriod
+    ) {
       return;
     }
 
-    try {
-      setFetching(true);
-      setError("");
-
-      try {
-        const response =
-          await getPregnancyDetails(
-            Number(userId)
+    const updateTimeline =
+      () => {
+        const timeline =
+          calculateTimeline(
+            formData.lastMenstrualPeriod
           );
 
-        const backendData =
-          response?.data?.data ||
-          response?.data;
+        setFormData(
+          (previous) => {
+            if (
+              previous.pregnancyWeek ===
+                timeline.pregnancyWeek &&
+              previous.pregnancyDays ===
+                timeline.pregnancyDays &&
+              previous.trimester ===
+                timeline.trimester &&
+              previous.dueDate ===
+                timeline.dueDate
+            ) {
+              return previous;
+            }
 
-        if (
-          backendData &&
-          (
-            backendData.id ||
-            backendData.lastMenstrualPeriod
-          )
-        ) {
-          setProfileExists(true);
+            const updated = {
+              ...previous,
+              dueDate:
+                timeline.dueDate,
+              pregnancyWeek:
+                timeline.pregnancyWeek,
+              pregnancyDays:
+                timeline.pregnancyDays,
+              trimester:
+                timeline.trimester,
+            };
 
-          const normalized =
-            normalizeData(
-              backendData
-            );
+            saveDraft(updated);
 
-          setFormData(normalized);
-
-          sessionStorage.removeItem(
-            DRAFT_KEY
-          );
-
-          return;
-        }
-      } catch (backendError) {
-        if (
-          backendError.response?.status !== 404
-        ) {
-          throw backendError;
-        }
-      }
-
-      /* =================================================
-         LOAD DRAFT
-      ================================================= */
-
-      const draft =
-        sessionStorage.getItem(
-          DRAFT_KEY
+            return updated;
+          }
         );
+      };
 
-      if (draft) {
-        try {
-          const parsed =
-            JSON.parse(draft);
+    updateTimeline();
 
-          setFormData(
-            normalizeData(parsed)
-          );
+    /*
+      Check every minute so if the date changes
+      while the page is open, the UI updates.
+    */
 
-        } catch (err) {
-
-          console.error(
-            "Invalid pregnancy draft:",
-            err
-          );
-
-          sessionStorage.removeItem(
-            DRAFT_KEY
-          );
-        }
-      }
-
-    } catch (err) {
-
-      console.error(
-        "Pregnancy loading error:",
-        err
+    const interval =
+      setInterval(
+        updateTimeline,
+        60 * 1000
       );
 
-      setError(
-        "Unable to load pregnancy information."
+    return () => {
+      clearInterval(
+        interval
       );
-
-    } finally {
-
-      setFetching(false);
-    }
-  };
+    };
+  }, [
+    formData.lastMenstrualPeriod,
+  ]);
 
   /* =======================================================
      HANDLE INPUT
   ======================================================= */
 
-  const handleChange = (event) => {
-
+  const handleChange = (
+    event
+  ) => {
     const {
       name,
       value,
@@ -509,18 +678,13 @@ const PregnancyDetails = () => {
     };
 
     /* =====================================================
-       IVF STATUS
+       IVF
     ===================================================== */
 
-    if (name === "pregnancyType") {
-
-      /*
-        Automatic IVF calculation:
-
-        IVF -> true
-        Natural -> false
-      */
-
+    if (
+      name ===
+      "pregnancyType"
+    ) {
       updated.ivfPregnancy =
         value === "IVF";
     }
@@ -533,9 +697,10 @@ const PregnancyDetails = () => {
       name ===
       "lastMenstrualPeriod"
     ) {
-
       const timeline =
-        calculateTimeline(value);
+        calculateTimeline(
+          value
+        );
 
       updated = {
         ...updated,
@@ -559,9 +724,9 @@ const PregnancyDetails = () => {
     ===================================================== */
 
     if (
-      name === "babyCount"
+      name ===
+      "babyCount"
     ) {
-
       updated.babyCount =
         toNonNegativeInteger(
           value
@@ -576,7 +741,6 @@ const PregnancyDetails = () => {
       name ===
       "previousPregnancies"
     ) {
-
       const previous =
         toNonNegativeInteger(
           value
@@ -588,9 +752,14 @@ const PregnancyDetails = () => {
       updated.firstPregnancy =
         previous === 0;
 
-      if (previous === 0) {
-        updated.liveBirths = 0;
-        updated.miscarriages = 0;
+      if (
+        previous === 0
+      ) {
+        updated.liveBirths =
+          0;
+
+        updated.miscarriages =
+          0;
       }
     }
 
@@ -599,9 +768,9 @@ const PregnancyDetails = () => {
     ===================================================== */
 
     if (
-      name === "liveBirths"
+      name ===
+      "liveBirths"
     ) {
-
       updated.liveBirths =
         toNonNegativeInteger(
           value
@@ -613,18 +782,22 @@ const PregnancyDetails = () => {
     ===================================================== */
 
     if (
-      name === "miscarriages"
+      name ===
+      "miscarriages"
     ) {
-
       updated.miscarriages =
         toNonNegativeInteger(
           value
         );
     }
 
-    setFormData(updated);
+    setFormData(
+      updated
+    );
 
-    saveDraft(updated);
+    saveDraft(
+      updated
+    );
 
     setError("");
   };
@@ -637,15 +810,19 @@ const PregnancyDetails = () => {
     field,
     value
   ) => {
-
     const updated = {
       ...formData,
-      [field]: toBoolean(value),
+      [field]:
+        toBoolean(value),
     };
 
-    setFormData(updated);
+    setFormData(
+      updated
+    );
 
-    saveDraft(updated);
+    saveDraft(
+      updated
+    );
 
     setError("");
   };
@@ -655,14 +832,10 @@ const PregnancyDetails = () => {
   ======================================================= */
 
   const validateForm = () => {
-
     if (
       !formData.lastMenstrualPeriod
     ) {
-
-      return (
-        "Please select the first day of your last menstrual period."
-      );
+      return "Please select the first day of your last menstrual period.";
     }
 
     const lmpDate =
@@ -671,19 +844,16 @@ const PregnancyDetails = () => {
       );
 
     if (!lmpDate) {
-
-      return (
-        "Please enter a valid last menstrual period."
-      );
+      return "Please enter a valid last menstrual period.";
     }
 
-    const today = getToday();
+    const today =
+      getToday();
 
-    if (lmpDate > today) {
-
-      return (
-        "Last menstrual period cannot be in the future."
-      );
+    if (
+      lmpDate > today
+    ) {
+      return "Last menstrual period cannot be in the future.";
     }
 
     /* =====================================================
@@ -695,11 +865,10 @@ const PregnancyDetails = () => {
         formData.babyCount
       );
 
-    if (babyCount < 1) {
-
-      return (
-        "Number of babies must be at least 1."
-      );
+    if (
+      babyCount < 1
+    ) {
+      return "Number of babies must be at least 1.";
     }
 
     /* =====================================================
@@ -722,17 +891,14 @@ const PregnancyDetails = () => {
       );
 
     if (
-      previousPregnancies === 0
+      previousPregnancies ===
+      0
     ) {
-
       if (
         liveBirths !== 0 ||
         miscarriages !== 0
       ) {
-
-        return (
-          "With no previous pregnancies, previous live births and miscarriages must both be 0."
-        );
+        return "With no previous pregnancies, previous live births and miscarriages must both be 0.";
       }
     }
 
@@ -740,20 +906,14 @@ const PregnancyDetails = () => {
       liveBirths >
       previousPregnancies
     ) {
-
-      return (
-        "Live births cannot be greater than previous pregnancies."
-      );
+      return "Live births cannot be greater than previous pregnancies.";
     }
 
     if (
       miscarriages >
       previousPregnancies
     ) {
-
-      return (
-        "Miscarriages cannot be greater than previous pregnancies."
-      );
+      return "Miscarriages cannot be greater than previous pregnancies.";
     }
 
     if (
@@ -761,10 +921,7 @@ const PregnancyDetails = () => {
         miscarriages >
       previousPregnancies
     ) {
-
-      return (
-        "Live births and miscarriages together cannot be greater than previous pregnancies."
-      );
+      return "Live births and miscarriages together cannot be greater than previous pregnancies.";
     }
 
     return "";
@@ -777,14 +934,14 @@ const PregnancyDetails = () => {
   const handleSubmit = async (
     event
   ) => {
-
     event.preventDefault();
 
     const validationError =
       validateForm();
 
-    if (validationError) {
-
+    if (
+      validationError
+    ) {
       setError(
         validationError
       );
@@ -792,10 +949,10 @@ const PregnancyDetails = () => {
       return;
     }
 
-    const userId = getUserId();
+    const userId =
+      getUserId();
 
     if (!userId) {
-
       setError(
         "User not found. Please login again."
       );
@@ -804,12 +961,11 @@ const PregnancyDetails = () => {
     }
 
     try {
-
       setLoading(true);
       setError("");
 
       /* =================================================
-         TIMELINE
+         ALWAYS CALCULATE FROM CURRENT DATE
       ================================================= */
 
       const timeline =
@@ -827,14 +983,16 @@ const PregnancyDetails = () => {
         );
 
       const liveBirths =
-        previousPregnancies === 0
+        previousPregnancies ===
+        0
           ? 0
           : toNonNegativeInteger(
               formData.liveBirths
             );
 
       const miscarriages =
-        previousPregnancies === 0
+        previousPregnancies ===
+        0
           ? 0
           : toNonNegativeInteger(
               formData.miscarriages
@@ -849,30 +1007,22 @@ const PregnancyDetails = () => {
         );
 
       const firstPregnancy =
-        previousPregnancies === 0;
+        previousPregnancies ===
+        0;
 
       /* =================================================
          IVF
       ================================================= */
 
-      /*
-        IMPORTANT
-
-        Always calculate IVF from pregnancyType.
-
-        IVF     -> true
-        Natural -> false
-      */
-
       const ivfPregnancy =
-        formData.pregnancyType === "IVF";
+        formData.pregnancyType ===
+        "IVF";
 
       /* =================================================
          FINAL REQUEST
       ================================================= */
 
       const request = {
-
         userId:
           Number(userId),
 
@@ -938,8 +1088,9 @@ const PregnancyDetails = () => {
          CREATE
       ================================================= */
 
-      if (!profileExists) {
-
+      if (
+        !profileExists
+      ) {
         await savePregnancyDetails(
           request
         );
@@ -947,7 +1098,6 @@ const PregnancyDetails = () => {
         alert(
           "Pregnancy details saved successfully!"
         );
-
       }
 
       /* =================================================
@@ -955,7 +1105,6 @@ const PregnancyDetails = () => {
       ================================================= */
 
       else {
-
         await updatePregnancyDetails(
           Number(userId),
           request
@@ -973,37 +1122,35 @@ const PregnancyDetails = () => {
       navigate(
         "/medical-history"
       );
-
     } catch (err) {
-
       console.error(
         "Pregnancy save error:",
         err
       );
 
-      if (err.response) {
-
+      if (
+        err.response
+      ) {
         setError(
-          err.response.data?.message ||
-          "Unable to save pregnancy details."
+          err.response.data
+            ?.message ||
+            "Unable to save pregnancy details."
         );
-
-      } else if (err.request) {
-
+      } else if (
+        err.request
+      ) {
         setError(
           "Unable to connect to the backend server."
         );
-
       } else {
-
         setError(
           "Something went wrong. Please try again."
         );
       }
-
     } finally {
-
-      setLoading(false);
+      setLoading(
+        false
+      );
     }
   };
 
@@ -1012,8 +1159,9 @@ const PregnancyDetails = () => {
   ======================================================= */
 
   const handleBack = () => {
-
-    saveDraft(formData);
+    saveDraft(
+      formData
+    );
 
     navigate(
       "/personal-info"
@@ -1025,15 +1173,17 @@ const PregnancyDetails = () => {
   ======================================================= */
 
   const handleSkip = () => {
-
     const confirmSkip =
       window.confirm(
         "You can complete pregnancy details later. Do you want to skip?"
       );
 
-    if (confirmSkip) {
-
-      saveDraft(formData);
+    if (
+      confirmSkip
+    ) {
+      saveDraft(
+        formData
+      );
 
       navigate(
         "/dashboard"
@@ -1046,16 +1196,13 @@ const PregnancyDetails = () => {
   ======================================================= */
 
   if (fetching) {
-
     return (
       <div className="personal-loading">
-
         <div className="loading-spinner"></div>
 
         <p>
           Loading pregnancy information...
         </p>
-
       </div>
     );
   }
@@ -1065,7 +1212,6 @@ const PregnancyDetails = () => {
   ======================================================= */
 
   return (
-
     <div className="personal-page">
 
       <div className="personal-card">
@@ -1088,7 +1234,6 @@ const PregnancyDetails = () => {
           </p>
 
           <div className="personal-quote">
-
             <span>
               “
             </span>
@@ -1096,17 +1241,12 @@ const PregnancyDetails = () => {
             Every pregnancy is a unique journey.
             Nurture AI uses this information to
             personalize your experience.
-
           </div>
 
           {profileExists && (
-
             <div className="profile-status">
-
               ✓ Pregnancy information already saved
-
             </div>
-
           )}
 
         </div>
@@ -1114,7 +1254,6 @@ const PregnancyDetails = () => {
         {/* ERROR */}
 
         {error && (
-
           <div className="error-message">
 
             <span>
@@ -1126,11 +1265,12 @@ const PregnancyDetails = () => {
             </span>
 
           </div>
-
         )}
 
         <form
-          onSubmit={handleSubmit}
+          onSubmit={
+            handleSubmit
+          }
         >
 
           {/* =================================================
@@ -1154,13 +1294,10 @@ const PregnancyDetails = () => {
             <div className="form-group">
 
               <label>
-
                 Last Menstrual Period{" "}
-
                 <span>
                   *
                 </span>
-
               </label>
 
               <input
@@ -1181,10 +1318,8 @@ const PregnancyDetails = () => {
               />
 
               <small>
-
                 Enter the first day of your
                 last menstrual period.
-
               </small>
 
             </div>
@@ -1206,10 +1341,8 @@ const PregnancyDetails = () => {
               />
 
               <small>
-
                 Automatically calculated
                 from the LMP.
-
               </small>
 
             </div>
@@ -1228,18 +1361,19 @@ const PregnancyDetails = () => {
 
               <div className="readonly-input">
 
-                {formData.pregnancyWeek ||
-                formData.pregnancyDays
+                {formData.pregnancyWeek !==
+                    null &&
+                formData.pregnancyWeek !==
+                    undefined &&
+                formData.trimester
                   ? `${formData.pregnancyWeek} weeks ${formData.pregnancyDays} days`
                   : "Will be calculated"}
 
               </div>
 
               <small>
-
                 Automatically calculated from
                 your last menstrual period.
-
               </small>
 
             </div>
@@ -1310,10 +1444,8 @@ const PregnancyDetails = () => {
               </select>
 
               <small>
-
                 Select how the current pregnancy
                 was conceived.
-
               </small>
 
             </div>
@@ -1328,17 +1460,16 @@ const PregnancyDetails = () => {
 
               <div className="readonly-input">
 
-                {formData.pregnancyType === "IVF"
+                {formData.pregnancyType ===
+                "IVF"
                   ? "Yes — IVF Pregnancy"
                   : "No — Natural Pregnancy"}
 
               </div>
 
               <small>
-
                 Automatically determined from
                 pregnancy type.
-
               </small>
 
             </div>
@@ -1367,10 +1498,8 @@ const PregnancyDetails = () => {
             />
 
             <small>
-
               Enter the number of babies
               expected in this pregnancy.
-
             </small>
 
           </div>
@@ -1392,10 +1521,8 @@ const PregnancyDetails = () => {
             </div>
 
             <small>
-
               Automatically determined from
               the number of babies.
-
             </small>
 
           </div>
@@ -1436,10 +1563,8 @@ const PregnancyDetails = () => {
             />
 
             <small>
-
               Number of pregnancies before
               the current pregnancy.
-
             </small>
 
           </div>
@@ -1454,27 +1579,25 @@ const PregnancyDetails = () => {
 
             <div className="readonly-input">
 
-              {formData.previousPregnancies === 0
+              {formData.previousPregnancies ===
+              0
                 ? "First Pregnancy"
                 : "Previous Pregnancy History Available"}
 
             </div>
 
             <small>
-
               Automatically determined from
               previous pregnancies.
-
             </small>
 
           </div>
 
           {/* PREVIOUS OUTCOMES */}
 
-          {formData.previousPregnancies > 0 && (
-
+          {formData.previousPregnancies >
+            0 && (
             <>
-
               <div className="form-row">
 
                 {/* LIVE BIRTHS */}
@@ -1502,10 +1625,8 @@ const PregnancyDetails = () => {
                   />
 
                   <small>
-
                     Number of previous pregnancies
                     that resulted in a live birth.
-
                   </small>
 
                 </div>
@@ -1535,10 +1656,8 @@ const PregnancyDetails = () => {
                   />
 
                   <small>
-
                     Number of previous pregnancies
                     that ended in miscarriage.
-
                   </small>
 
                 </div>
@@ -1556,7 +1675,6 @@ const PregnancyDetails = () => {
                 <div className="history-summary-grid">
 
                   <div>
-
                     <span>
                       Previous pregnancies
                     </span>
@@ -1566,11 +1684,9 @@ const PregnancyDetails = () => {
                         formData.previousPregnancies
                       }
                     </strong>
-
                   </div>
 
                   <div>
-
                     <span>
                       Live births
                     </span>
@@ -1580,11 +1696,9 @@ const PregnancyDetails = () => {
                         formData.liveBirths
                       }
                     </strong>
-
                   </div>
 
                   <div>
-
                     <span>
                       Miscarriages
                     </span>
@@ -1594,11 +1708,9 @@ const PregnancyDetails = () => {
                         formData.miscarriages
                       }
                     </strong>
-
                   </div>
 
                   <div>
-
                     <span>
                       Current pregnancy
                     </span>
@@ -1606,7 +1718,6 @@ const PregnancyDetails = () => {
                     <strong>
                       1
                     </strong>
-
                   </div>
 
                 </div>
@@ -1635,9 +1746,7 @@ const PregnancyDetails = () => {
                 </div>
 
               </div>
-
             </>
-
           )}
 
           {/* =================================================
@@ -1685,11 +1794,9 @@ const PregnancyDetails = () => {
             </select>
 
             <small>
-
               Select Yes only if a healthcare
               professional has identified this
               pregnancy as high risk.
-
             </small>
 
           </div>
@@ -1769,19 +1876,12 @@ const PregnancyDetails = () => {
             >
 
               {loading ? (
-
                 <>
-
                   <span className="button-spinner"></span>
-
                   Saving...
-
                 </>
-
               ) : (
-
                 <>
-
                   {profileExists
                     ? "Update & Continue"
                     : "Save & Continue"}
@@ -1789,9 +1889,7 @@ const PregnancyDetails = () => {
                   <span>
                     →
                   </span>
-
                 </>
-
               )}
 
             </button>

@@ -8,6 +8,9 @@ import com.nurture.backend.repository.PregnancyProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+
 @Service
 public class PregnancyProfileService {
 
@@ -17,50 +20,182 @@ public class PregnancyProfileService {
     @Autowired
     private LoginRepository loginRepository;
 
-    // Save or Update Pregnancy Profile
+
+    // =========================================================
+    // SAVE OR UPDATE PREGNANCY PROFILE
+    // =========================================================
+
     public PregnancyProfile save(PregnancyProfileRequest request) {
 
         Login user = loginRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        PregnancyProfile profile = repository.findByUser_Id(request.getUserId())
-                .orElse(new PregnancyProfile());
+        PregnancyProfile profile =
+                repository.findByUser_Id(request.getUserId())
+                        .orElse(new PregnancyProfile());
 
         profile.setUser(user);
 
-        // Pregnancy Information
+
+        // =====================================================
+        // PREGNANCY INFORMATION
+        // =====================================================
+
         profile.setDueDate(request.getDueDate());
-        profile.setPregnancyWeek(request.getPregnancyWeek());
-        profile.setTrimester(request.getTrimester());
 
-        // New Fields
-        profile.setLastMenstrualPeriod(request.getLastMenstrualPeriod());
-        profile.setPregnancyType(request.getPregnancyType());
-        profile.setBabyCount(request.getBabyCount());
-        profile.setDoctorNotes(request.getDoctorNotes());
+        profile.setLastMenstrualPeriod(
+                request.getLastMenstrualPeriod()
+        );
 
-        // Pregnancy History
-        profile.setFirstPregnancy(request.getFirstPregnancy());
-        profile.setPreviousPregnancies(request.getPreviousPregnancies());
-        profile.setLiveBirths(request.getLiveBirths());
-        profile.setMiscarriages(request.getMiscarriages());
+        profile.setPregnancyType(
+                request.getPregnancyType()
+        );
 
-        // Risk Details
-        profile.setHighRisk(request.getHighRisk());
-        profile.setIvfPregnancy(request.getIvfPregnancy());
-        profile.setMultiplePregnancy(request.getMultiplePregnancy());
+        profile.setBabyCount(
+                request.getBabyCount()
+        );
+
+        profile.setDoctorNotes(
+                request.getDoctorNotes()
+        );
+
+
+        // =====================================================
+        // CALCULATE CURRENT PREGNANCY WEEK
+        // FROM LMP
+        // =====================================================
+
+        LocalDate lmp =
+                request.getLastMenstrualPeriod();
+
+        Integer currentWeek =
+                request.getPregnancyWeek();
+
+        String currentTrimester =
+                request.getTrimester();
+
+
+        if (lmp != null) {
+
+            LocalDate today =
+                    LocalDate.now();
+
+            long daysPregnant =
+                    ChronoUnit.DAYS.between(
+                            lmp,
+                            today
+                    );
+
+
+            // =================================================
+            // CALCULATE WEEK
+            // =================================================
+
+            if (daysPregnant >= 0) {
+
+                currentWeek =
+                        (int) (daysPregnant / 7);
+
+
+                // =================================================
+                // CALCULATE TRIMESTER
+                // =================================================
+
+                if (currentWeek <= 13) {
+
+                    currentTrimester =
+                            "First Trimester";
+
+                } else if (currentWeek <= 27) {
+
+                    currentTrimester =
+                            "Second Trimester";
+
+                } else {
+
+                    currentTrimester =
+                            "Third Trimester";
+                }
+            }
+        }
+
+
+        // =====================================================
+        // SAVE CALCULATED VALUES
+        // =====================================================
+
+        profile.setPregnancyWeek(
+                currentWeek
+        );
+
+        profile.setTrimester(
+                currentTrimester
+        );
+
+
+        // =====================================================
+        // PREGNANCY HISTORY
+        // =====================================================
+
+        profile.setFirstPregnancy(
+                request.getFirstPregnancy()
+        );
+
+        profile.setPreviousPregnancies(
+                request.getPreviousPregnancies()
+        );
+
+        profile.setLiveBirths(
+                request.getLiveBirths()
+        );
+
+        profile.setMiscarriages(
+                request.getMiscarriages()
+        );
+
+
+        // =====================================================
+        // RISK DETAILS
+        // =====================================================
+
+        profile.setHighRisk(
+                request.getHighRisk()
+        );
+
+        profile.setIvfPregnancy(
+                request.getIvfPregnancy()
+        );
+
+        profile.setMultiplePregnancy(
+                request.getMultiplePregnancy()
+        );
+
+
+        // =====================================================
+        // SAVE TO DATABASE
+        // =====================================================
 
         return repository.save(profile);
     }
 
-    // Get Pregnancy Profile by User ID
+
+    // =========================================================
+    // GET PREGNANCY PROFILE BY USER ID
+    // =========================================================
+
     public PregnancyProfile getProfile(Long userId) {
+
         return repository.findByUser_Id(userId)
                 .orElse(null);
     }
 
-    // Check if Pregnancy Profile Exists
+
+    // =========================================================
+    // CHECK IF PREGNANCY PROFILE EXISTS
+    // =========================================================
+
     public boolean exists(Long userId) {
+
         return repository.existsByUser_Id(userId);
     }
 }
