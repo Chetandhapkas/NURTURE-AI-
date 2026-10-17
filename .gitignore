@@ -63,3 +63,5 @@ Thumbs.db
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+/firebase-service-account.json
