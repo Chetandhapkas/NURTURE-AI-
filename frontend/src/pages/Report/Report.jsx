@@ -44,8 +44,8 @@ const getUserId = () => {
     "patientUserId",
   ];
 
-  for (const key of possibleKeys) {
-    const value = localStorage.getItem(key);
+  for (let i = 0; i < possibleKeys.length; i++) {
+    const value = localStorage.getItem(possibleKeys[i]);
 
     if (value && value !== "null" && value !== "undefined") {
       return value;
@@ -74,7 +74,7 @@ const formatDate = (date) => {
   const parsed = new Date(date);
 
   if (Number.isNaN(parsed.getTime())) {
-    return date;
+    return String(date);
   }
 
   return parsed.toLocaleDateString("en-IN", {
@@ -91,7 +91,7 @@ const formatNumber = (value, decimals = 0) => {
 
   const number = Number(value);
 
-  if (Number.isNaN(number)) {
+  if (!Number.isFinite(number)) {
     return "--";
   }
 
@@ -107,13 +107,37 @@ const numericValue = (value, fallback = null) => {
 
   const number = Number(value);
 
-  return Number.isNaN(number) ? fallback : number;
+  return Number.isFinite(number) ? number : fallback;
+};
+
+/*
+ * Reads the first available field from an API object.
+ * Missing values are not converted into zeroes.
+ */
+const getFirstAvailable = (object, keys) => {
+  if (!object || typeof object !== "object") {
+    return null;
+  }
+
+  for (let i = 0; i < keys.length; i++) {
+    const value = object[keys[i]];
+
+    if (
+      value !== null &&
+      value !== undefined &&
+      value !== ""
+    ) {
+      return value;
+    }
+  }
+
+  return null;
 };
 
 const getScoreStatus = (score) => {
-  const value = Number(score);
+  const value = numericValue(score);
 
-  if (Number.isNaN(value)) return "No data";
+  if (value === null) return "No data";
   if (value >= 80) return "Good";
   if (value >= 60) return "Fair";
 
@@ -121,9 +145,9 @@ const getScoreStatus = (score) => {
 };
 
 const getScoreClass = (score) => {
-  const value = Number(score);
+  const value = numericValue(score);
 
-  if (Number.isNaN(value)) return "neutral";
+  if (value === null) return "neutral";
   if (value >= 80) return "good";
   if (value >= 60) return "fair";
 
@@ -133,6 +157,7 @@ const getScoreClass = (score) => {
 const getUserName = (data) => {
   return (
     data?.patient?.fullName ||
+    data?.patient?.name ||
     data?.user?.fullName ||
     data?.profile?.fullName ||
     data?.fullName ||
@@ -179,12 +204,17 @@ const Report = () => {
   ======================================================= */
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadReport = async () => {
       const userId = getUserId();
 
       if (!userId) {
-        setError("User session not found. Please login again.");
-        setLoading(false);
+        if (!cancelled) {
+          setError("User session not found. Please login again.");
+          setLoading(false);
+        }
+
         return;
       }
 
@@ -196,22 +226,58 @@ const Report = () => {
           withCredentials: true,
         });
 
-        console.log("Report API response:", response.data);
+        console.log(
+          "FULL REPORT RESPONSE:",
+          JSON.stringify(response.data, null, 2)
+        );
 
-        setReport(response?.data || {});
+        console.log(
+          "HEALTH DATA:",
+          JSON.stringify(
+            response.data?.health ??
+              response.data?.healthTracking ??
+              response.data?.healthSummary ??
+              {},
+            null,
+            2
+          )
+        );
+
+        console.log(
+          "AI WELLNESS INSIGHT:",
+          JSON.stringify(
+            response.data?.aiInsight ??
+              response.data?.ai ??
+              {},
+            null,
+            2
+          )
+        );
+
+        if (!cancelled) {
+          setReport(response?.data || {});
+        }
       } catch (err) {
         console.error("Report loading error:", err);
 
-        setError(
-          err?.response?.data?.message ||
-            "Unable to load your wellness report."
-        );
+        if (!cancelled) {
+          setError(
+            err?.response?.data?.message ||
+              "Unable to load your wellness report."
+          );
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     loadReport();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   /* =========================================================
@@ -222,7 +288,11 @@ const Report = () => {
     if (!report) return {};
 
     return {
-      patient: report.patient || report.user || {},
+      patient:
+        report.patient ||
+        report.user ||
+        report.profile ||
+        {},
 
       pregnancy:
         report.pregnancy ||
@@ -232,6 +302,7 @@ const Report = () => {
       health:
         report.health ||
         report.healthTracking ||
+        report.healthSummary ||
         {},
 
       nutrition:
@@ -266,8 +337,7 @@ const Report = () => {
         report.overallScore ??
         null,
 
-      scoreChange:
-        report.scoreChange ?? null,
+      scoreChange: report.scoreChange ?? null,
     };
   }, [report]);
 
@@ -318,9 +388,7 @@ const Report = () => {
               <FaNotesMedical />
             </div>
 
-            <span className="error-label">
-              REPORT ERROR
-            </span>
+            <span className="error-label">REPORT ERROR</span>
 
             <h2>Unable to Load Report</h2>
 
@@ -348,108 +416,140 @@ const Report = () => {
 
   /* =========================================================
      PREGNANCY INFORMATION
-     Only information needed for the report overview.
-     Detailed pregnancy profile is shown separately.
   ========================================================= */
 
-  const pregnancyWeek =
-    data.pregnancy?.pregnancyWeek ??
-    data.pregnancy?.week ??
-    "--";
+  const pregnancyWeek = getFirstAvailable(data.pregnancy, [
+    "pregnancyWeek",
+    "week",
+    "currentWeek",
+    "gestationalWeek",
+  ]);
 
   const trimester =
-    data.pregnancy?.trimester ||
+    getFirstAvailable(data.pregnancy, ["trimester"]) ||
     "Not available";
 
-  const babyCount =
-    data.pregnancy?.babyCount ??
-    data.pregnancy?.numberOfBabies ??
-    "--";
+  const babyCount = getFirstAvailable(data.pregnancy, [
+    "babyCount",
+    "numberOfBabies",
+    "numberOfBaby",
+  ]);
 
-  const dueDate =
-    data.pregnancy?.dueDate ||
-    data.pregnancy?.expectedDueDate;
+  const dueDate = getFirstAvailable(data.pregnancy, [
+    "dueDate",
+    "expectedDueDate",
+    "estimatedDueDate",
+  ]);
 
   /* =========================================================
      WEEKLY AVERAGE HEALTH DATA
   ========================================================= */
 
-  const avgSteps =
-    data.health?.averageSteps ??
-    data.health?.avgSteps ??
-    data.health?.stepsAverage;
+  const health = data.health || {};
 
-  const avgActiveMinutes =
-    data.health?.averageActivityMinutes ??
-    data.health?.averageActiveMinutes ??
-    data.health?.avgActiveMinutes;
+  const avgSteps = getFirstAvailable(health, [
+    "averageSteps",
+    "avgSteps",
+    "stepsAverage",
+    "averageStepCount",
+    "steps",
+  ]);
 
-  const avgDistance =
-    data.health?.averageDistanceKm ??
-    data.health?.avgDistanceKm ??
-    data.health?.averageDistance;
+  const avgActiveMinutes = getFirstAvailable(health, [
+    "averageActivityMinutes",
+    "averageActiveMinutes",
+    "avgActiveMinutes",
+    "averageExerciseMinutes",
+    "activeMinutes",
+  ]);
 
-  const avgCalories =
-    data.health?.averageCaloriesBurned ??
-    data.health?.averageCalories ??
-    data.health?.caloriesBurned;
+  const avgDistance = getFirstAvailable(health, [
+    "averageDistanceKm",
+    "avgDistanceKm",
+    "averageDistance",
+    "distanceKm",
+    "distance",
+  ]);
 
-  const avgSleep =
-    data.health?.averageSleepHours ??
-    data.health?.sleepHours;
+  const avgCalories = getFirstAvailable(health, [
+    "averageCaloriesBurned",
+    "averageCalories",
+    "avgCaloriesBurned",
+    "avgCalories",
+    "caloriesBurned",
+    "calories",
+  ]);
 
-  const avgWater =
-    data.health?.averageWaterGlasses ??
-    data.health?.waterGlasses;
+  const avgSleep = getFirstAvailable(health, [
+    "averageSleepHours",
+    "averageSleep",
+    "avgSleepHours",
+    "avgSleep",
+    "sleepHours",
+    "sleepDurationHours",
+  ]);
+
+  const avgWater = getFirstAvailable(health, [
+    "averageWaterGlasses",
+    "averageWater",
+    "avgWaterGlasses",
+    "avgWater",
+    "waterGlasses",
+    "waterIntakeGlasses",
+    "dailyWaterGlasses",
+  ]);
+
+  console.log("REPORT HEALTH VALUES:", {
+    avgSteps,
+    avgActiveMinutes,
+    avgDistance,
+    avgCalories,
+    avgSleep,
+    avgWater,
+  });
 
   /* =========================================================
      WELLNESS SCORES
   ========================================================= */
 
-  const healthScore =
-    data.health?.averageHealthScore ??
-    data.health?.healthScore;
+  const healthScore = getFirstAvailable(health, [
+    "averageHealthScore",
+    "healthScore",
+  ]);
 
-  const nutritionScore =
-    data.nutrition?.score ??
-    data.nutrition?.nutritionScore;
+  const nutritionScore = getFirstAvailable(data.nutrition, [
+    "score",
+    "nutritionScore",
+  ]);
 
-  const moodScore =
-    data.mood?.score ??
-    data.mood?.moodScore;
+  const moodScore = getFirstAvailable(data.mood, [
+    "score",
+    "moodScore",
+  ]);
 
   const symptomStatus =
-    data.symptoms?.status ||
-    data.symptoms?.trend ||
+    getFirstAvailable(data.symptoms, ["status", "trend"]) ||
     "Stable";
 
-  const symptomSeverity =
-    data.symptoms?.averageSeverity ??
-    data.symptoms?.severity;
+  const symptomSeverity = getFirstAvailable(data.symptoms, [
+    "averageSeverity",
+    "severity",
+  ]);
 
   /* =========================================================
      OVERALL SCORE
   ========================================================= */
 
-  const overallScore = numericValue(
-    data.overallScore
-  );
-
-  const overallStatus =
-    getScoreStatus(overallScore);
-
-  const overallScoreClass =
-    getScoreClass(overallScore);
+  const overallScore = numericValue(data.overallScore);
+  const overallStatus = getScoreStatus(overallScore);
+  const overallScoreClass = getScoreClass(overallScore);
 
   /* =========================================================
      REPORT PERIOD
   ========================================================= */
 
-  const startDate =
-    data.reportPeriod?.startDate;
-
-  const endDate =
-    data.reportPeriod?.endDate;
+  const startDate = data.reportPeriod?.startDate;
+  const endDate = data.reportPeriod?.endDate;
 
   const reportPeriod =
     startDate && endDate
@@ -457,14 +557,25 @@ const Report = () => {
       : "Weekly Report";
 
   /* =========================================================
-     AI INSIGHT
+     AI-GENERATED WELLNESS INSIGHT
   ========================================================= */
 
-  const aiInsight =
+  const aiMessage =
     data.ai?.message ||
     data.ai?.insight ||
+    "";
+
+  const aiSummary =
     data.ai?.summary ||
-    "Your wellness information has been reviewed for this reporting period. Continue following your regular wellness routine and discuss any persistent or concerning symptoms with your healthcare professional.";
+    "";
+
+  const aiRecommendation =
+    data.ai?.recommendation ||
+    "";
+
+  const aiInsightAvailable = Boolean(
+    aiMessage || aiSummary || aiRecommendation
+  );
 
   /* =========================================================
      RENDER
@@ -472,19 +583,14 @@ const Report = () => {
 
   return (
     <div className="report-layout">
-
       <Sidebar />
 
       <main className="report-page">
-
         <div className="report-container">
 
-          {/* =================================================
-              TOP BAR
-          ================================================= */}
+          {/* TOP BAR */}
 
           <div className="report-topbar">
-
             <button
               className="report-back-btn"
               onClick={() => navigate(-1)}
@@ -494,7 +600,6 @@ const Report = () => {
             </button>
 
             <div className="report-actions">
-
               <span className="secure-report">
                 <FaShieldAlt />
                 Private Wellness Report
@@ -507,37 +612,25 @@ const Report = () => {
                 <FaDownload />
                 Download PDF
               </button>
-
             </div>
-
           </div>
 
-          {/* =================================================
-              HEADER
-          ================================================= */}
+          {/* HEADER */}
 
           <section className="report-hero">
-
             <div className="hero-left">
-
               <div className="hero-brand">
-
                 <div className="hero-logo">
                   <FaHeartbeat />
                 </div>
 
                 <div className="hero-brand-text">
                   <span>NURTURE AI</span>
-
-                  <small>
-                    Pregnancy Wellness Platform
-                  </small>
+                  <small>Pregnancy Wellness Platform</small>
                 </div>
-
               </div>
 
               <div className="hero-title">
-
                 <span className="hero-eyebrow">
                   PERSONALIZED PREGNANCY REPORT
                 </span>
@@ -549,64 +642,41 @@ const Report = () => {
                 </h1>
 
                 <p>
-                  A simple summary of your pregnancy
-                  progress and weekly wellness information.
+                  A simple summary of your pregnancy progress
+                  and weekly wellness information.
                 </p>
-
               </div>
-
             </div>
 
             <div className="hero-right">
-
               <div className="report-date-box">
-
                 <FaCalendarAlt />
 
                 <div>
-
                   <span>REPORT PERIOD</span>
-
-                  <strong>
-                    {reportPeriod}
-                  </strong>
-
+                  <strong>{reportPeriod}</strong>
                 </div>
-
               </div>
 
               <div className="generated-label">
                 Generated on {formatDate(new Date())}
               </div>
-
             </div>
-
           </section>
 
-          {/* =================================================
-              PATIENT INFORMATION
-          ================================================= */}
+          {/* PATIENT INFORMATION */}
 
           <section className="patient-card">
-
             <div className="patient-profile">
-
               <div className="patient-avatar">
                 <FaUser />
               </div>
 
               <div className="patient-main">
-
-                <span className="card-label">
-                  PATIENT
-                </span>
-
-                <h2>
-                  {patientName}
-                </h2>
+                <span className="card-label">PATIENT</span>
+                <h2>{patientName}</h2>
 
                 <div className="patient-meta">
-
                   <span>
                     <FaEnvelope />
                     {email}
@@ -616,244 +686,133 @@ const Report = () => {
                     <FaPhone />
                     {phoneNumber}
                   </span>
-
                 </div>
-
               </div>
-
             </div>
 
             <div className="patient-pregnancy">
-
               <div>
-
-                <span>
-                  Pregnancy
-                </span>
-
+                <span>Pregnancy</span>
                 <strong>
-                  {pregnancyWeek !== "--"
+                  {pregnancyWeek !== null
                     ? `Week ${pregnancyWeek}`
                     : "--"}
                 </strong>
-
               </div>
 
               <div>
-
-                <span>
-                  Trimester
-                </span>
-
-                <strong>
-                  {trimester}
-                </strong>
-
+                <span>Trimester</span>
+                <strong>{trimester}</strong>
               </div>
 
               <div>
-
-                <span>
-                  Baby Count
-                </span>
-
-                <strong>
-                  {babyCount}
-                </strong>
-
+                <span>Baby Count</span>
+                <strong>{babyCount ?? "--"}</strong>
               </div>
-
             </div>
-
           </section>
 
-          {/* =================================================
-              01 PREGNANCY OVERVIEW
-          ================================================= */}
+          {/* 01 PREGNANCY OVERVIEW */}
 
           <section className="report-section">
-
             <div className="section-header">
-
               <div className="section-title-group">
-
-                <span className="section-number">
-                  01
-                </span>
+                <span className="section-number">01</span>
 
                 <div>
-
                   <span className="section-label">
                     PREGNANCY OVERVIEW
                   </span>
-
-                  <h2>
-                    Your Pregnancy Journey
-                  </h2>
-
+                  <h2>Your Pregnancy Journey</h2>
                 </div>
-
               </div>
 
               <FaBaby className="section-header-icon" />
-
             </div>
 
             <div className="pregnancy-overview-grid">
-
               <div className="pregnancy-overview-card">
-
                 <div className="overview-icon">
                   <FaBaby />
                 </div>
 
                 <div>
-
-                  <span>
-                    Pregnancy Week
-                  </span>
-
+                  <span>Pregnancy Week</span>
                   <strong>
-                    {pregnancyWeek !== "--"
+                    {pregnancyWeek !== null
                       ? `Week ${pregnancyWeek}`
                       : "--"}
                   </strong>
-
-                  <small>
-                    Current pregnancy progress
-                  </small>
-
+                  <small>Current pregnancy progress</small>
                 </div>
-
               </div>
 
               <div className="pregnancy-overview-card">
-
                 <div className="overview-icon">
                   <FaHeartbeat />
                 </div>
 
                 <div>
-
-                  <span>
-                    Trimester
-                  </span>
-
-                  <strong>
-                    {trimester}
-                  </strong>
-
-                  <small>
-                    Current stage of pregnancy
-                  </small>
-
+                  <span>Trimester</span>
+                  <strong>{trimester}</strong>
+                  <small>Current stage of pregnancy</small>
                 </div>
-
               </div>
 
               <div className="pregnancy-overview-card">
-
                 <div className="overview-icon">
                   <FaBaby />
                 </div>
 
                 <div>
-
-                  <span>
-                    Baby Count
-                  </span>
-
-                  <strong>
-                    {babyCount}
-                  </strong>
-
-                  <small>
-                    Number of babies recorded
-                  </small>
-
+                  <span>Baby Count</span>
+                  <strong>{babyCount ?? "--"}</strong>
+                  <small>Number of babies recorded</small>
                 </div>
-
               </div>
 
               <div className="pregnancy-overview-card">
-
                 <div className="overview-icon">
                   <FaCalendarAlt />
                 </div>
 
                 <div>
-
-                  <span>
-                    Expected Due Date
-                  </span>
-
-                  <strong>
-                    {formatDate(dueDate)}
-                  </strong>
-
-                  <small>
-                    Recorded expected delivery date
-                  </small>
-
+                  <span>Expected Due Date</span>
+                  <strong>{formatDate(dueDate)}</strong>
+                  <small>Recorded expected delivery date</small>
                 </div>
-
               </div>
-
             </div>
-
           </section>
 
-          {/* =================================================
-              02 OVERALL WELLNESS
-          ================================================= */}
+          {/* 02 OVERALL WELLNESS */}
 
           <section className="report-section">
-
             <div className="section-header">
-
               <div className="section-title-group">
-
-                <span className="section-number">
-                  02
-                </span>
+                <span className="section-number">02</span>
 
                 <div>
-
                   <span className="section-label">
                     WELLNESS SCORE
                   </span>
-
-                  <h2>
-                    Overall Wellness
-                  </h2>
-
+                  <h2>Overall Wellness</h2>
                 </div>
-
               </div>
 
               <FaChartLine className="section-header-icon" />
-
             </div>
 
             <div className="wellness-main-card">
-
               <div className="score-area">
-
                 <div
                   className="score-ring"
                   style={{
-                    "--score":
-                      overallScore !== null
-                        ? overallScore
-                        : 0,
+                    "--score": overallScore ?? 0,
                   }}
                 >
-
                   <div className="score-ring-inner">
-
-                    <span>
-                      WELLNESS
-                    </span>
+                    <span>WELLNESS</span>
 
                     <strong>
                       {overallScore !== null
@@ -861,334 +820,176 @@ const Report = () => {
                         : "--"}
                     </strong>
 
-                    <small>
-                      / 100
-                    </small>
-
+                    <small>/ 100</small>
                   </div>
-
                 </div>
-
               </div>
 
               <div className="wellness-summary">
-
                 <div className="wellness-heading">
-
                   <div>
-
-                    <span>
-                      WEEKLY ASSESSMENT
-                    </span>
-
-                    <h3>
-                      Your Overall Wellness
-                    </h3>
-
+                    <span>WEEKLY ASSESSMENT</span>
+                    <h3>Your Overall Wellness</h3>
                   </div>
 
-                  <div
-                    className={`score-badge ${overallScoreClass}`}
-                  >
+                  <div className={`score-badge ${overallScoreClass}`}>
                     {overallStatus}
                   </div>
-
                 </div>
 
                 <p>
-                  This score provides a simple summary
-                  of the wellness information recorded
-                  during this reporting period.
+                  This score provides a simple summary of the wellness
+                  information recorded during this reporting period.
                 </p>
 
                 {data.scoreChange !== null &&
                   data.scoreChange !== undefined && (
-
                     <div className="score-comparison">
-
                       <FaChartLine />
 
                       <div>
-
-                        <span>
-                          Change from previous report
-                        </span>
+                        <span>Change from previous report</span>
 
                         <strong>
-                          {Number(data.scoreChange) >= 0
-                            ? "↑"
-                            : "↓"}{" "}
-                          {Math.abs(
-                            Number(data.scoreChange)
-                          )}
-                          %
+                          {Number(data.scoreChange) >= 0 ? "↑" : "↓"}{" "}
+                          {Math.abs(Number(data.scoreChange))}%
                         </strong>
-
                       </div>
-
                     </div>
-
                   )}
-
               </div>
-
             </div>
-
           </section>
 
-          {/* =================================================
-              03 WEEKLY AVERAGE HEALTH
-          ================================================= */}
+          {/* 03 WEEKLY AVERAGE HEALTH */}
 
           <section className="report-section">
-
             <div className="section-header">
-
               <div className="section-title-group">
-
-                <span className="section-number">
-                  03
-                </span>
+                <span className="section-number">03</span>
 
                 <div>
-
                   <span className="section-label">
                     WEEKLY AVERAGES
                   </span>
-
-                  <h2>
-                    Health Summary
-                  </h2>
-
+                  <h2>Health Summary</h2>
                 </div>
-
               </div>
 
               <FaWalking className="section-header-icon" />
-
             </div>
 
             <p className="section-description">
-              Average values from your health tracking
-              records during this reporting period.
-              Detailed daily activity remains available
-              on the Health Tracking page.
+              Average values from your health tracking records during
+              this reporting period. Detailed daily activity remains
+              available on the Health Tracking page.
             </p>
 
             <div className="average-health-grid">
-
-              {/* STEPS */}
-
               <div className="average-card">
-
                 <div className="average-icon">
                   <FaWalking />
                 </div>
 
                 <div className="average-card-content">
-
-                  <span>
-                    Average Steps
-                  </span>
-
-                  <strong>
-                    {formatNumber(avgSteps)}
-                  </strong>
-
-                  <small>
-                    steps per day
-                  </small>
-
+                  <span>Average Steps</span>
+                  <strong>{formatNumber(avgSteps)}</strong>
+                  <small>steps per day</small>
                 </div>
-
               </div>
 
-              {/* ACTIVE TIME */}
-
               <div className="average-card">
-
                 <div className="average-icon">
                   <FaClock />
                 </div>
 
                 <div className="average-card-content">
-
-                  <span>
-                    Average Active Time
-                  </span>
-
-                  <strong>
-                    {formatNumber(avgActiveMinutes)}
-                  </strong>
-
-                  <small>
-                    minutes per day
-                  </small>
-
+                  <span>Average Active Time</span>
+                  <strong>{formatNumber(avgActiveMinutes)}</strong>
+                  <small>minutes per day</small>
                 </div>
-
               </div>
 
-              {/* DISTANCE */}
-
               <div className="average-card">
-
                 <div className="average-icon">
                   <FaRoad />
                 </div>
 
                 <div className="average-card-content">
-
-                  <span>
-                    Average Distance
-                  </span>
-
-                  <strong>
-                    {formatNumber(avgDistance, 1)}
-                  </strong>
-
-                  <small>
-                    km per day
-                  </small>
-
+                  <span>Average Distance</span>
+                  <strong>{formatNumber(avgDistance, 1)}</strong>
+                  <small>km per day</small>
                 </div>
-
               </div>
 
-              {/* CALORIES */}
-
               <div className="average-card">
-
                 <div className="average-icon">
                   <FaFire />
                 </div>
 
                 <div className="average-card-content">
-
-                  <span>
-                    Average Calories
-                  </span>
-
-                  <strong>
-                    {formatNumber(avgCalories)}
-                  </strong>
-
-                  <small>
-                    calories per day
-                  </small>
-
+                  <span>Average Calories</span>
+                  <strong>{formatNumber(avgCalories)}</strong>
+                  <small>calories per day</small>
                 </div>
-
               </div>
 
-              {/* SLEEP */}
-
               <div className="average-card">
-
                 <div className="average-icon">
                   <FaMoon />
                 </div>
 
                 <div className="average-card-content">
-
-                  <span>
-                    Average Sleep
-                  </span>
-
-                  <strong>
-                    {formatNumber(avgSleep, 1)}
-                  </strong>
-
-                  <small>
-                    hours per day
-                  </small>
-
+                  <span>Average Sleep</span>
+                  <strong>{formatNumber(avgSleep, 1)}</strong>
+                  <small>hours per day</small>
                 </div>
-
               </div>
 
-              {/* WATER */}
-
               <div className="average-card">
-
                 <div className="average-icon">
                   <FaTint />
                 </div>
 
                 <div className="average-card-content">
-
-                  <span>
-                    Average Water
-                  </span>
-
-                  <strong>
-                    {formatNumber(avgWater)}
-                  </strong>
-
-                  <small>
-                    glasses per day
-                  </small>
-
+                  <span>Average Water</span>
+                  <strong>{formatNumber(avgWater, 1)}</strong>
+                  <small>glasses per day</small>
                 </div>
-
               </div>
-
             </div>
-
           </section>
 
-          {/* =================================================
-              04 WELLNESS SUMMARY
-          ================================================= */}
+          {/* 04 WELLNESS SUMMARY */}
 
           <section className="report-section">
-
             <div className="section-header">
-
               <div className="section-title-group">
-
-                <span className="section-number">
-                  04
-                </span>
+                <span className="section-number">04</span>
 
                 <div>
-
                   <span className="section-label">
                     WELLNESS SUMMARY
                   </span>
-
-                  <h2>
-                    Nutrition, Mood & Symptoms
-                  </h2>
-
+                  <h2>Nutrition, Mood & Symptoms</h2>
                 </div>
-
               </div>
-
             </div>
 
             <div className="wellness-summary-grid">
-
-              {/* NUTRITION */}
-
               <div className="wellness-summary-card">
-
                 <div className="summary-card-icon">
                   <FaAppleAlt />
                 </div>
 
                 <div className="summary-card-content">
-
-                  <span>
-                    Nutrition
-                  </span>
+                  <span>Nutrition</span>
 
                   <strong>
-                    {formatNumber(nutritionScore)}
-
-                    {nutritionScore !== undefined &&
-                      nutritionScore !== null &&
-                      " / 100"}
+                    {nutritionScore !== null &&
+                    nutritionScore !== undefined
+                      ? `${formatNumber(nutritionScore)} / 100`
+                      : "--"}
                   </strong>
 
                   <small
@@ -1198,31 +999,21 @@ const Report = () => {
                   >
                     {getScoreStatus(nutritionScore)}
                   </small>
-
                 </div>
-
               </div>
 
-              {/* MOOD */}
-
               <div className="wellness-summary-card">
-
                 <div className="summary-card-icon">
                   <FaSmile />
                 </div>
 
                 <div className="summary-card-content">
-
-                  <span>
-                    Emotional Wellbeing
-                  </span>
+                  <span>Emotional Wellbeing</span>
 
                   <strong>
-                    {formatNumber(moodScore)}
-
-                    {moodScore !== undefined &&
-                      moodScore !== null &&
-                      " / 100"}
+                    {moodScore !== null && moodScore !== undefined
+                      ? `${formatNumber(moodScore)} / 100`
+                      : "--"}
                   </strong>
 
                   <small
@@ -1232,204 +1023,170 @@ const Report = () => {
                   >
                     {getScoreStatus(moodScore)}
                   </small>
-
                 </div>
-
               </div>
 
-              {/* SYMPTOMS */}
-
               <div className="wellness-summary-card">
-
                 <div className="summary-card-icon">
                   <FaNotesMedical />
                 </div>
 
                 <div className="summary-card-content">
-
-                  <span>
-                    Symptoms
-                  </span>
-
-                  <strong>
-                    {symptomStatus}
-                  </strong>
+                  <span>Symptoms</span>
+                  <strong>{symptomStatus}</strong>
 
                   <small>
-                    {symptomSeverity !== undefined &&
-                    symptomSeverity !== null
+                    {symptomSeverity !== null &&
+                    symptomSeverity !== undefined
                       ? `Average severity: ${symptomSeverity}`
                       : "Based on recorded symptoms"}
                   </small>
-
                 </div>
-
               </div>
-
             </div>
-
           </section>
 
-          {/* =================================================
-              05 AI INSIGHT
-          ================================================= */}
+          {/* 05 AI-GENERATED WELLNESS INSIGHT */}
 
           <section className="ai-report-section">
-
             <div className="ai-report-card">
-
               <div className="ai-report-icon">
                 <FaRobot />
               </div>
 
               <div className="ai-report-content">
-
                 <div className="ai-report-heading">
-
                   <div>
-
-                    <span>
-                      NURTURE AI
-                    </span>
-
-                    <h2>
-                      Personalized Wellness Insight
-                    </h2>
-
+                    <span>NURTURE AI · GEMINI</span>
+                    <h2>Personalized Wellness Insight</h2>
                   </div>
 
                   <FaLightbulb />
-
                 </div>
 
-                <p>
-                  {aiInsight}
-                </p>
+                {aiInsightAvailable ? (
+                  <>
+                    {aiMessage && (
+                      <div className="ai-insight-message">
+                        <h3>Weekly Insight</h3>
+                        <p>{aiMessage}</p>
+                      </div>
+                    )}
+
+                    {aiSummary && (
+                      <div className="ai-insight-summary">
+                        <h3>AI Analysis</h3>
+                        <p>{aiSummary}</p>
+                      </div>
+                    )}
+
+                    {aiRecommendation && (
+                      <div className="ai-insight-recommendation">
+                        <h3>Personalized Tip</h3>
+                        <p>{aiRecommendation}</p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="ai-insight-unavailable">
+                    <h3>Insight temporarily unavailable</h3>
+
+                    <p>
+                      Your wellness report is available, but an AI-generated
+                      insight was not returned. Please refresh your report
+                      or try again later.
+                    </p>
+                  </div>
+                )}
 
                 <div className="ai-note">
-
                   <FaClipboardCheck />
 
                   <span>
-                    This insight is based on the
-                    information recorded during this
-                    report period.
+                    These AI-generated insights use the wellness
+                    information returned by your report service.
+                    They provide general guidance and do not replace
+                    professional medical advice.
                   </span>
-
                 </div>
-
               </div>
-
             </div>
-
           </section>
 
-          {/* =================================================
-              06 RECOMMENDATIONS
-          ================================================= */}
+          {/* 06 RECOMMENDATIONS */}
 
           <section className="recommendation-section">
-
             <div className="recommendation-card">
-
               <div className="recommendation-icon">
                 <FaLightbulb />
               </div>
 
               <div className="recommendation-content">
-
                 <span className="section-label">
-                  WELLNESS REMINDER
+                  AI-PERSONALIZED WELLNESS TIP
                 </span>
 
                 <h3>
-                  Continue maintaining healthy habits
+                  {aiRecommendation
+                    ? "Your Personalized Recommendation"
+                    : "Personalized Tip Unavailable"}
                 </h3>
 
                 <p>
-                  Continue recording your wellness
-                  information regularly so your reports
-                  can show meaningful changes over time.
+                  {aiRecommendation ||
+                    "Your personalized recommendation could not be generated. Please refresh your report to try again."}
                 </p>
-
               </div>
-
             </div>
 
             <div className="recommendation-card">
-
               <div className="recommendation-icon">
                 <FaShieldAlt />
               </div>
 
               <div className="recommendation-content">
-
-                <span className="section-label">
-                  IMPORTANT
-                </span>
+                <span className="section-label">IMPORTANT</span>
 
                 <h3>
                   When to contact your healthcare professional
                 </h3>
 
                 <p>
-                  If you experience persistent, unusual,
-                  or concerning symptoms, contact your
-                  doctor or healthcare professional.
-                  This report does not replace medical advice.
+                  If you experience persistent, unusual, or concerning
+                  symptoms, contact your doctor or healthcare
+                  professional. This report does not replace medical advice.
                 </p>
-
               </div>
-
             </div>
-
           </section>
 
-          {/* =================================================
-              FOOTER
-          ================================================= */}
+          {/* FOOTER */}
 
           <footer className="report-footer">
-
             <div className="footer-brand">
-
               <div className="footer-logo">
                 <FaHeartbeat />
               </div>
 
               <div>
-
-                <strong>
-                  Nurture AI
-                </strong>
-
+                <strong>Nurture AI</strong>
                 <span>
                   Personalized pregnancy wellness support
                 </span>
-
               </div>
-
             </div>
 
             <div className="footer-right">
-
               <span>
-                Report generated on{" "}
-                {formatDate(new Date())}
+                Report generated on {formatDate(new Date())}
               </span>
 
-              <span>
-                Confidential Wellness Report
-              </span>
-
+              <span>Confidential Wellness Report</span>
             </div>
-
           </footer>
 
         </div>
-
       </main>
-
     </div>
   );
 };

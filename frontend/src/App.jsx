@@ -69,6 +69,8 @@ import FamilyForm from "./pages/FamilyForm/FForm.jsx";
 import FamilyFormDetails from "./pages/FamilyForm/FForm1.jsx";
 import FamilyDashboard from "./pages/FamilyDashboard/familyDashboard.jsx";
 
+import MotherFamilyDashboard from "./pages/MotherFamilyDashboard/MotherFamilyDashboard.jsx";
+
 // =============================================================
 // HEALTH TRACKING
 // =============================================================
@@ -97,6 +99,24 @@ import Healthcare from "./pages/MedicineVaccination/HealthCare.jsx";
 
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx";
 
+// =============================================================
+// Nutrition
+// =============================================================
+import Nutrition from "./pages/Nutrition/Nutrition.jsx";
+
+// =============================================================
+//  Settings
+// =============================================================
+
+import Settings from "./pages/Settings/Settings.jsx";
+
+// =============================================================
+//  ForgotPassword
+// =============================================================
+
+import ForgotPassword from "./pages/ForgotPassword/ForgotPassword.jsx";
+import ResetPassword from "./pages/ResetPassword/ResetPassword.jsx";
+import PrescriptionGallery from "./pages/PrescriptionGallery/PrescriptionGallery";
 // =============================================================
 // APP
 // =============================================================
@@ -168,6 +188,21 @@ function App() {
           }
         />
 
+        
+            {/* =====================================================
+                  NUTRITION ANALYZER
+                  ONLY MOTHER
+            ===================================================== */}
+
+            <Route
+              path="/nutrition"
+              element={
+                <ProtectedRoute allowedRoles={["mother"]}>
+                <Nutrition />
+                </ProtectedRoute>
+              }
+            />
+
         {/* =====================================================
             AI ASSISTANT
             ONLY MOTHER
@@ -181,6 +216,21 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+
+        {/* =====================================================
+                MOTHER FAMILY DASHBOARD
+                ONLY MOTHER
+        ===================================================== */}
+
+          <Route
+            path="/my-family"
+              element={
+              <ProtectedRoute allowedRoles={["mother"]}>
+                <MotherFamilyDashboard />
+              </ProtectedRoute>
+           }
+          />
 
         {/* =====================================================
             MEDICINE & VACCINATION
@@ -230,6 +280,20 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* =====================================================
+    PRESCRIPTION GALLERY
+    ONLY MOTHER
+===================================================== */}
+
+<Route
+  path="/prescriptions"
+  element={
+    <ProtectedRoute allowedRoles={["mother"]}>
+      <PrescriptionGallery />
+    </ProtectedRoute>
+  }
+/>
 
         {/* =====================================================
             MEDICAL HISTORY
@@ -350,9 +414,21 @@ function App() {
             </ProtectedRoute>
           }
         />
+      {/* =====================================================
+            SETTINGS
+            MOTHER AND FAMFAMILYILY MEMBER
+        ===================================================== */}
+            <Route
+            path="/settings"
+              element={
+                <ProtectedRoute allowedRoles={["mother", "family member"]}>
+                <Settings />
+                </ProtectedRoute>
+            }
+            />
 
         {/* =====================================================
-            FAMILY DASHBOARD
+             DASHBOARD
             ONLY FAMILY MEMBER
         ===================================================== */}
 
@@ -364,6 +440,21 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* =====================================================
+            DASHBOARD
+            ONLY FAMILY MEMBER
+        ===================================================== */}
+
+          <Route
+            path="/forgot-password"
+              element={<ForgotPassword />}
+              />
+
+              <Route
+              path="/reset-password"
+              element={<ResetPassword />}
+            />
 
         {/* =====================================================
             UNKNOWN ROUTE

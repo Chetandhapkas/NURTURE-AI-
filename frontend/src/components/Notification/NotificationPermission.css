@@ -1,0 +1,236 @@
+/* =====================================================
+   NURTURE AI - Notification Card
+   ===================================================== */
+
+.notification-card {
+  width: 100%;
+  box-sizing: border-box;
+
+  background: #ffffff;
+
+  border: 1px solid #e6eaf0;
+  border-radius: 16px;
+
+  padding: 22px 24px;
+
+  margin: 20px 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.notification-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.09);
+}
+
+
+/* =====================================================
+   ICON
+   ===================================================== */
+
+.notification-icon {
+  width: 48px;
+  height: 48px;
+
+  border-radius: 12px;
+
+  background: #f1f7ff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 24px;
+
+  margin-bottom: 14px;
+}
+
+
+/* =====================================================
+   TITLE
+   ===================================================== */
+
+.notification-card h3 {
+  margin: 0 0 8px 0;
+
+  font-size: 18px;
+
+  font-weight: 600;
+
+  color: #1f2937;
+}
+
+
+/* =====================================================
+   DESCRIPTION
+   ===================================================== */
+
+.notification-card > p {
+  margin: 0 0 16px 0;
+
+  font-size: 14px;
+
+  line-height: 1.6;
+
+  color: #6b7280;
+
+  max-width: 700px;
+}
+
+
+/* =====================================================
+   BUTTON
+   ===================================================== */
+
+.notification-card button {
+  border: none;
+
+  border-radius: 9px;
+
+  padding: 11px 18px;
+
+  background: #2563eb;
+
+  color: #ffffff;
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
+}
+
+.notification-card button:hover {
+  background: #1d4ed8;
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 4px 10px rgba(37, 99, 235, 0.25);
+}
+
+.notification-card button:active {
+  transform: translateY(0);
+}
+
+.notification-card button:disabled {
+  background: #9ca3af;
+
+  cursor: not-allowed;
+
+  box-shadow: none;
+
+  transform: none;
+}
+
+
+/* =====================================================
+   STATUS MESSAGE
+   ===================================================== */
+
+.notification-card p[role="status"] {
+  margin-top: 14px;
+
+  margin-bottom: 0;
+
+  padding: 9px 12px;
+
+  border-radius: 8px;
+
+  background: #f0fdf4;
+
+  color: #15803d;
+
+  font-size: 13px;
+
+  line-height: 1.4;
+}
+
+
+/* =====================================================
+   DENIED MESSAGE
+   ===================================================== */
+
+.notification-card p:last-child {
+  margin-top: 10px;
+
+  margin-bottom: 0;
+
+  color: #dc2626;
+
+  font-size: 13px;
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (max-width: 768px) {
+
+  .notification-card {
+    padding: 18px;
+
+    margin: 16px 0;
+
+    border-radius: 14px;
+  }
+
+  .notification-icon {
+    width: 44px;
+    height: 44px;
+
+    font-size: 22px;
+  }
+
+  .notification-card h3 {
+    font-size: 17px;
+  }
+
+  .notification-card > p {
+    font-size: 13px;
+
+    line-height: 1.5;
+  }
+
+  .notification-card button {
+    width: 100%;
+
+    padding: 12px 16px;
+  }
+}
+
+
+/* =====================================================
+   SMALL MOBILE
+   ===================================================== */
+
+@media (max-width: 480px) {
+
+  .notification-card {
+    padding: 16px;
+  }
+
+  .notification-card h3 {
+    font-size: 16px;
+  }
+
+  .notification-card button {
+    font-size: 13px;
+  }
+}

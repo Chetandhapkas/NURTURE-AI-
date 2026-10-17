@@ -3,14 +3,13 @@ package com.nurture.backend.notification;
 import com.nurture.backend.entity.Appointment;
 import com.nurture.backend.entity.MedicineLog;
 import com.nurture.backend.entity.Vaccination;
-
 import com.nurture.backend.repository.AppointmentRepository;
 import com.nurture.backend.repository.MedicineLogRepository;
 import com.nurture.backend.repository.VaccinationRepository;
-
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -29,6 +28,11 @@ public class NotificationScheduler {
     private static final ZoneId ZONE =
             ZoneId.of("Asia/Kolkata");
 
+    /*
+     * Appointment and vaccination reminder time.
+     *
+     * 09:00 AM every day.
+     */
     private static final LocalTime REMINDER_TIME =
             LocalTime.of(9, 0);
 
@@ -44,70 +48,183 @@ public class NotificationScheduler {
             VaccinationRepository vaccinationRepository,
             NotificationService notificationService
     ) {
-        this.medicineLogRepository = medicineLogRepository;
-        this.appointmentRepository = appointmentRepository;
-        this.vaccinationRepository = vaccinationRepository;
-        this.notificationService = notificationService;
+
+        this.medicineLogRepository =
+                medicineLogRepository;
+
+        this.appointmentRepository =
+                appointmentRepository;
+
+        this.vaccinationRepository =
+                vaccinationRepository;
+
+        this.notificationService =
+                notificationService;
     }
 
     /*
-     * Check notifications every minute.
+     * ============================================================
+     * MAIN SCHEDULER
+     * ============================================================
+     *
+     * Runs every minute.
      */
     @Scheduled(cron = "0 * * * * *")
     public void checkNotifications() {
+
+        LocalDateTime now =
+                LocalDateTime.now(ZONE)
+                        .withSecond(0)
+                        .withNano(0);
+
+        System.out.println();
+        System.out.println(
+                "=========================================="
+        );
 
         System.out.println(
                 "Checking NURTURE AI notifications..."
         );
 
+        System.out.println(
+                "Scheduler time: " + now
+        );
+
+        System.out.println(
+                "=========================================="
+        );
+
         checkMedicineNotifications();
+
         checkAppointmentNotifications();
+
         checkVaccinationNotifications();
     }
 
     /*
+     * ============================================================
      * MEDICINE REMINDER
+     * ============================================================
      *
-     * Send at the scheduled medicine date and time.
-     * Only send for PENDING medicine logs.
+     * Medicine reminder is sent when:
+     *
+     * - Scheduled date = today
+     * - Scheduled time has arrived
+     * - Status = PENDING
+     * - Reminder is not older than 2 minutes
+     *
+     * Detailed logs are added here to find exactly why a
+     * medicine reminder is being skipped.
      */
     private void checkMedicineNotifications() {
 
         List<MedicineLog> logs =
                 medicineLogRepository.findAll();
 
-        LocalDateTime currentMinute =
+        LocalDateTime now =
                 LocalDateTime.now(ZONE)
                         .withSecond(0)
                         .withNano(0);
 
+        LocalDate today =
+                now.toLocalDate();
+
+        LocalTime currentTime =
+                now.toLocalTime();
+
+        System.out.println(
+                "Medicine scheduler time: "
+                        + now
+        );
+
+        System.out.println(
+                "Total medicine logs: "
+                        + logs.size()
+        );
+
         for (MedicineLog log : logs) {
 
-            if (log.getScheduledDate() == null) {
+            System.out.println();
+            System.out.println(
+                    "========== MEDICINE LOG CHECK =========="
+            );
+
+            /*
+             * ----------------------------------------------------
+             * LOG ID
+             * ----------------------------------------------------
+             */
+            System.out.println(
+                    "Medicine Log ID: "
+                            + log.getId()
+            );
+
+            /*
+             * ----------------------------------------------------
+             * SCHEDULED DATE
+             * ----------------------------------------------------
+             */
+            System.out.println(
+                    "Scheduled Date: "
+                            + log.getScheduledDate()
+            );
+
+            /*
+             * ----------------------------------------------------
+             * SCHEDULED TIME
+             * ----------------------------------------------------
+             */
+            System.out.println(
+                    "Scheduled Time: "
+                            + log.getScheduledTime()
+            );
+
+            /*
+             * ----------------------------------------------------
+             * STATUS
+             * ----------------------------------------------------
+             */
+            System.out.println(
+                    "Status: "
+                            + log.getStatus()
+            );
+
+            /*
+             * ----------------------------------------------------
+             * MEDICINE
+             * ----------------------------------------------------
+             */
+            if (log.getMedicine() == null) {
+
+                System.out.println(
+                        "SKIPPED: Medicine is null"
+                );
+
                 continue;
             }
 
-            if (log.getScheduledTime() == null) {
-                continue;
-            }
+            System.out.println(
+                    "Medicine ID: "
+                            + log.getMedicine().getId()
+            );
 
-            if (!"PENDING".equalsIgnoreCase(log.getStatus())) {
-                continue;
-            }
+            System.out.println(
+                    "Medicine Name: "
+                            + log.getMedicine()
+                            .getMedicineName()
+            );
 
-            if (log.getMedicine() == null ||
-                    log.getMedicine().getUser() == null) {
-                continue;
-            }
+            /*
+             * ----------------------------------------------------
+             * USER
+             * ----------------------------------------------------
+             */
+            if (log.getMedicine().getUser() == null) {
 
-            LocalDateTime scheduledDateTime =
-                    LocalDateTime.of(
-                            log.getScheduledDate(),
-                            log.getScheduledTime()
-                    ).withSecond(0).withNano(0);
+                System.out.println(
+                        "SKIPPED: User is null"
+                );
 
-            // Send only when both date and time match.
-            if (!scheduledDateTime.equals(currentMinute)) {
                 continue;
             }
 
@@ -116,10 +233,137 @@ public class NotificationScheduler {
                             .getUser()
                             .getId();
 
-            if (userId == null) {
+            System.out.println(
+                    "User ID: "
+                            + userId
+            );
+
+            /*
+             * ----------------------------------------------------
+             * SCHEDULED DATE CHECK
+             * ----------------------------------------------------
+             */
+            if (log.getScheduledDate() == null) {
+
+                System.out.println(
+                        "SKIPPED: Scheduled date is null"
+                );
+
                 continue;
             }
 
+            if (!today.equals(
+                    log.getScheduledDate())) {
+
+                System.out.println(
+                        "SKIPPED: Scheduled date is not today"
+                );
+
+                System.out.println(
+                        "Today: "
+                                + today
+                );
+
+                System.out.println(
+                        "Scheduled: "
+                                + log.getScheduledDate()
+                );
+
+                continue;
+            }
+
+            /*
+             * ----------------------------------------------------
+             * SCHEDULED TIME CHECK
+             * ----------------------------------------------------
+             */
+            if (log.getScheduledTime() == null) {
+
+                System.out.println(
+                        "SKIPPED: Scheduled time is null"
+                );
+
+                continue;
+            }
+
+            LocalTime scheduledTime =
+                    log.getScheduledTime();
+
+            System.out.println(
+                    "Current Time: "
+                            + currentTime
+            );
+
+            System.out.println(
+                    "Scheduled Time: "
+                            + scheduledTime
+            );
+
+            /*
+             * ----------------------------------------------------
+             * STATUS CHECK
+             * ----------------------------------------------------
+             */
+            if (!"PENDING".equalsIgnoreCase(
+                    log.getStatus())) {
+
+                System.out.println(
+                        "SKIPPED: Status is not PENDING"
+                );
+
+                continue;
+            }
+
+            /*
+             * ----------------------------------------------------
+             * TIME ARRIVAL CHECK
+             * ----------------------------------------------------
+             */
+            if (scheduledTime.isAfter(
+                    currentTime)) {
+
+                System.out.println(
+                        "SKIPPED: Medicine time has not arrived yet"
+                );
+
+                continue;
+            }
+
+            /*
+             * ----------------------------------------------------
+             * TIME DIFFERENCE
+             * ----------------------------------------------------
+             */
+            long minutesDifference =
+                    Duration.between(
+                            scheduledTime,
+                            currentTime
+                    ).toMinutes();
+
+            System.out.println(
+                    "Minutes difference: "
+                            + minutesDifference
+            );
+
+            /*
+             * ----------------------------------------------------
+             * OLD REMINDER CHECK
+             * ----------------------------------------------------
+             */
+            if (minutesDifference > 2) {
+
+                System.out.println(
+                        "SKIPPED: Reminder is older than 2 minutes"
+                );
+
+                continue;
+            }
+
+            /*
+             * ----------------------------------------------------
+             * MEDICINE INFORMATION
+             * ----------------------------------------------------
+             */
             String medicineName =
                     log.getMedicine()
                             .getMedicineName();
@@ -128,13 +372,74 @@ public class NotificationScheduler {
                     log.getMedicine()
                             .getDosage();
 
+            /*
+             * ----------------------------------------------------
+             * NOTIFICATION BODY
+             * ----------------------------------------------------
+             */
             String body =
-                    "It's time to take " + medicineName;
+                    "It's time to take "
+                            + medicineName;
 
-            if (dosage != null && !dosage.isBlank()) {
-                body += " (" + dosage + ")";
+            if (dosage != null &&
+                    !dosage.isBlank()) {
+
+                body +=
+                        " (" + dosage + ")";
             }
 
+            /*
+             * ----------------------------------------------------
+             * MATCHED
+             * ----------------------------------------------------
+             */
+            System.out.println();
+            System.out.println(
+                    "****************************************"
+            );
+
+            System.out.println(
+                    "MEDICINE REMINDER MATCHED!"
+            );
+
+            System.out.println(
+                    "Medicine Log ID: "
+                            + log.getId()
+            );
+
+            System.out.println(
+                    "User ID: "
+                            + userId
+            );
+
+            System.out.println(
+                    "Medicine: "
+                            + medicineName
+            );
+
+            System.out.println(
+                    "Scheduled Time: "
+                            + scheduledTime
+            );
+
+            System.out.println(
+                    "Current Time: "
+                            + currentTime
+            );
+
+            System.out.println(
+                    "Sending notification..."
+            );
+
+            System.out.println(
+                    "****************************************"
+            );
+
+            /*
+             * ----------------------------------------------------
+             * SEND NOTIFICATION
+             * ----------------------------------------------------
+             */
             boolean sent =
                     notificationService.sendNotification(
                             userId,
@@ -145,18 +450,30 @@ public class NotificationScheduler {
                     );
 
             if (sent) {
+
                 System.out.println(
-                        "Medicine reminder sent for log ID: "
-                                + log.getId()
+                        "Medicine reminder sent successfully!"
+                );
+
+            } else {
+
+                System.out.println(
+                        "Medicine reminder was NOT sent."
                 );
             }
+
+            System.out.println(
+                    "========== END MEDICINE CHECK =========="
+            );
         }
     }
 
     /*
+     * ============================================================
      * APPOINTMENT REMINDER
+     * ============================================================
      *
-     * Send one day before the appointment at 9:00 AM.
+     * Sends one day before appointment at 09:00 AM.
      */
     private void checkAppointmentNotifications() {
 
@@ -169,33 +486,55 @@ public class NotificationScheduler {
         LocalTime now =
                 LocalTime.now(ZONE);
 
-        if (!isCurrentMinute(REMINDER_TIME, now)) {
+        /*
+         * Only run around 09:00 AM.
+         */
+        if (!isCurrentMinute(
+                REMINDER_TIME,
+                now)) {
+
             return;
         }
 
         List<Appointment> appointments =
                 appointmentRepository.findAll();
 
-        for (Appointment appointment : appointments) {
+        System.out.println(
+                "Checking appointment reminders..."
+        );
+
+        for (Appointment appointment :
+                appointments) {
 
             if (appointment.getAppointmentDate() == null ||
                     appointment.getAppointmentTime() == null) {
+
                 continue;
             }
 
+            /*
+             * Appointment must be tomorrow.
+             */
             if (!tomorrow.equals(
                     appointment.getAppointmentDate())) {
+
                 continue;
             }
 
+            /*
+             * Only upcoming appointments.
+             */
             if (!"UPCOMING".equalsIgnoreCase(
                     appointment.getStatus())) {
+
                 continue;
             }
 
-            Long userId = appointment.getUserId();
+            Long userId =
+                    appointment.getUserId();
 
             if (userId == null) {
+
                 continue;
             }
 
@@ -229,18 +568,26 @@ public class NotificationScheduler {
                     );
 
             if (sent) {
+
                 System.out.println(
-                        "Appointment reminder sent for ID: "
-                                + appointment.getId()
+                        "Appointment reminder sent successfully."
+                );
+
+            } else {
+
+                System.out.println(
+                        "Appointment reminder was not sent."
                 );
             }
         }
     }
 
     /*
+     * ============================================================
      * VACCINATION REMINDER
+     * ============================================================
      *
-     * Send one day before vaccination at 9:00 AM.
+     * Sends one day before vaccination at 09:00 AM.
      */
     private void checkVaccinationNotifications() {
 
@@ -253,30 +600,51 @@ public class NotificationScheduler {
         LocalTime now =
                 LocalTime.now(ZONE);
 
-        if (!isCurrentMinute(REMINDER_TIME, now)) {
+        /*
+         * Only run around 09:00 AM.
+         */
+        if (!isCurrentMinute(
+                REMINDER_TIME,
+                now)) {
+
             return;
         }
 
         List<Vaccination> vaccinations =
                 vaccinationRepository.findAll();
 
-        for (Vaccination vaccination : vaccinations) {
+        System.out.println(
+                "Checking vaccination reminders..."
+        );
+
+        for (Vaccination vaccination :
+                vaccinations) {
 
             if (vaccination.getScheduledDate() == null) {
+
                 continue;
             }
 
+            /*
+             * Vaccination must be tomorrow.
+             */
             if (!tomorrow.equals(
                     vaccination.getScheduledDate())) {
+
                 continue;
             }
 
+            /*
+             * Completed vaccination should not notify.
+             */
             if ("COMPLETED".equalsIgnoreCase(
                     vaccination.getStatus())) {
+
                 continue;
             }
 
             if (vaccination.getUser() == null) {
+
                 continue;
             }
 
@@ -285,6 +653,7 @@ public class NotificationScheduler {
                             .getId();
 
             if (userId == null) {
+
                 continue;
             }
 
@@ -305,8 +674,12 @@ public class NotificationScheduler {
                             + date
                             + ".";
 
-            if (doseNumber != null && !doseNumber.isBlank()) {
-                body += " Dose: " + doseNumber;
+            if (doseNumber != null &&
+                    !doseNumber.isBlank()) {
+
+                body +=
+                        " Dose: "
+                                + doseNumber;
             }
 
             boolean sent =
@@ -319,22 +692,34 @@ public class NotificationScheduler {
                     );
 
             if (sent) {
+
                 System.out.println(
-                        "Vaccination reminder sent for ID: "
-                                + vaccination.getId()
+                        "Vaccination reminder sent successfully."
+                );
+
+            } else {
+
+                System.out.println(
+                        "Vaccination reminder was not sent."
                 );
             }
         }
     }
 
     /*
-     * Compare hour and minute.
+     * ============================================================
+     * CHECK CURRENT MINUTE
+     * ============================================================
      */
     private boolean isCurrentMinute(
             LocalTime scheduledTime,
             LocalTime currentTime
     ) {
-        return scheduledTime.getHour() == currentTime.getHour()
-                && scheduledTime.getMinute() == currentTime.getMinute();
+
+        return scheduledTime.getHour()
+                == currentTime.getHour()
+                &&
+                scheduledTime.getMinute()
+                        == currentTime.getMinute();
     }
 }

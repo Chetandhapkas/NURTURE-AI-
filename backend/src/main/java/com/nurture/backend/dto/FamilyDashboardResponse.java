@@ -1,3 +1,4 @@
+
 package com.nurture.backend.dto;
 
 import java.util.List;
@@ -27,7 +28,7 @@ public class FamilyDashboardResponse {
     private Boolean highRisk;
 
     // =========================================================
-    // ALL APPOINTMENTS
+    // APPOINTMENTS
     // =========================================================
 
     private List<FamilyAppointmentResponse> appointments;
@@ -39,6 +40,24 @@ public class FamilyDashboardResponse {
     private Integer healthScore;
 
     // =========================================================
+    // MEDICINES
+    // =========================================================
+
+    private List<FamilyMedicineResponse> medicines;
+
+    // =========================================================
+    // TODAY'S MEDICINE SCHEDULE
+    // =========================================================
+
+    private List<FamilyMedicineLogResponse> todayMedicineSchedule;
+
+    // =========================================================
+    // VACCINATIONS
+    // =========================================================
+
+    private List<FamilyVaccinationResponse> vaccinations;
+
+    // =========================================================
     // CONSTRUCTOR
     // =========================================================
 
@@ -46,7 +65,7 @@ public class FamilyDashboardResponse {
     }
 
     // =========================================================
-    // GETTERS / SETTERS
+    // MOTHER GETTERS / SETTERS
     // =========================================================
 
     public Long getPatientUserId() {
@@ -88,6 +107,10 @@ public class FamilyDashboardResponse {
     public void setAge(Integer age) {
         this.age = age;
     }
+
+    // =========================================================
+    // PREGNANCY GETTERS / SETTERS
+    // =========================================================
 
     public Integer getPregnancyWeek() {
         return pregnancyWeek;
@@ -137,6 +160,10 @@ public class FamilyDashboardResponse {
         this.highRisk = highRisk;
     }
 
+    // =========================================================
+    // APPOINTMENT GETTERS / SETTERS
+    // =========================================================
+
     public List<FamilyAppointmentResponse> getAppointments() {
         return appointments;
     }
@@ -147,11 +174,57 @@ public class FamilyDashboardResponse {
         this.appointments = appointments;
     }
 
+    // =========================================================
+    // HEALTH SCORE GETTERS / SETTERS
+    // =========================================================
+
     public Integer getHealthScore() {
         return healthScore;
     }
 
     public void setHealthScore(Integer healthScore) {
         this.healthScore = healthScore;
+    }
+
+    // =========================================================
+    // MEDICINE GETTERS / SETTERS
+    // =========================================================
+
+    public List<FamilyMedicineResponse> getMedicines() {
+        return medicines;
+    }
+
+    public void setMedicines(
+            List<FamilyMedicineResponse> medicines
+    ) {
+        this.medicines = medicines;
+    }
+
+    // =========================================================
+    // TODAY'S MEDICINE SCHEDULE GETTERS / SETTERS
+    // =========================================================
+
+    public List<FamilyMedicineLogResponse> getTodayMedicineSchedule() {
+        return todayMedicineSchedule;
+    }
+
+    public void setTodayMedicineSchedule(
+            List<FamilyMedicineLogResponse> todayMedicineSchedule
+    ) {
+        this.todayMedicineSchedule = todayMedicineSchedule;
+    }
+
+    // =========================================================
+    // VACCINATION GETTERS / SETTERS
+    // =========================================================
+
+    public List<FamilyVaccinationResponse> getVaccinations() {
+        return vaccinations;
+    }
+
+    public void setVaccinations(
+            List<FamilyVaccinationResponse> vaccinations
+    ) {
+        this.vaccinations = vaccinations;
     }
 }

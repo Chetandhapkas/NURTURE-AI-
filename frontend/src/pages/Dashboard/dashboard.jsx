@@ -3,6 +3,7 @@ import Navbar from "../../components/Navbar/Navbar";
 import WelcomeCard from "../../components/WelcomeCard/WelcomeCard";
 import HealthSummary from "../../components/HealthSummary/HealthSummary";
 import AppointmentCard from "../../components/AppointmentCard/AppointmentCard";
+import ExerciseVideos from "../../components/ExerciseVideos/ExerciseVideos";
 
 import NotificationPermission from "../../components/Notification/NotificationPermission";
 
@@ -29,6 +30,9 @@ function Dashboard() {
 
           {/* Appointments */}
           <AppointmentCard />
+
+          {/* Exercise Videos */}
+          <ExerciseVideos />
 
         </main>
 

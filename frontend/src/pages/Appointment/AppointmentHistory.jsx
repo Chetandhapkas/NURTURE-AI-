@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import Sidebar from "../../components/Sidebar/Sidebar";
+import Sidebar from "../../components/sidebar/Sidebar";
 import Navbar from "../../components/Navbar/Navbar";
 
 import API from "../../services/api";
@@ -1158,22 +1158,11 @@ function AppointmentHistory() {
                             ================================================= */}
 
                             <button
-                              type="button"
-                              className="view-small-btn"
-                              onClick={() =>
-                                navigate(
-                                  `/appointment/${appointment.id}`
-                                )
-                              }
-                            >
-
-                              View
-
-                              <span>
-                                →
-                              </span>
-
-                            </button>
+  type="button"
+  onClick={() => navigate("/prescriptions")}
+>
+  View All →
+</button>
 
                           </div>
 

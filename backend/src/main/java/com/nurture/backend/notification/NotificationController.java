@@ -1,4 +1,3 @@
-
 package com.nurture.backend.notification;
 
 import com.nurture.backend.entity.NotificationToken;
@@ -22,11 +21,11 @@ import java.util.Optional;
 public class NotificationController {
 
     private final NotificationTokenRepository tokenRepository;
-    private final FirebaseNotificationService notificationService;
+    private final NotificationService notificationService;
 
     public NotificationController(
             NotificationTokenRepository tokenRepository,
-            FirebaseNotificationService notificationService
+            NotificationService notificationService
     ) {
         this.tokenRepository = tokenRepository;
         this.notificationService = notificationService;
@@ -100,6 +99,11 @@ public class NotificationController {
 
             tokenRepository.save(notificationToken);
 
+            System.out.println(
+                    "FCM token updated for user: "
+                            + userId
+            );
+
             return ResponseEntity.ok(
                     Map.of(
                             "success", true,
@@ -117,6 +121,11 @@ public class NotificationController {
         notificationToken.setActive(true);
 
         tokenRepository.save(notificationToken);
+
+        System.out.println(
+                "New FCM token saved for user: "
+                        + userId
+        );
 
         return ResponseEntity.ok(
                 Map.of(
@@ -172,6 +181,10 @@ public class NotificationController {
 
         tokenRepository.save(notificationToken);
 
+        System.out.println(
+                "FCM token deactivated"
+        );
+
         return ResponseEntity.ok(
                 Map.of(
                         "success", true,
@@ -187,7 +200,9 @@ public class NotificationController {
      *
      * POST /api/notifications/test/{userId}
      *
-     * Used to verify that FCM is working.
+     * IMPORTANT:
+     * This now uses the SAME NotificationService
+     * that the scheduler uses.
      * =====================================================
      */
     @PostMapping("/test/{userId}")
@@ -204,41 +219,49 @@ public class NotificationController {
                     .body(Map.of(
                             "success", false,
                             "message",
-                            "No active notification token found for this user"
+                            "No active notification token found for this user",
+                            "userId",
+                            userId
                     ));
         }
 
-        int sent = 0;
+        /*
+         * Use a unique reference ID for every test.
+         *
+         * This prevents NotificationHistory from
+         * blocking a new test notification.
+         */
+        Long testReferenceId =
+                System.currentTimeMillis();
 
-        for (int i = 0; i < tokens.size(); i++) {
-
-            NotificationToken token = tokens.get(i);
-
-            try {
-
+        boolean sent =
                 notificationService.sendNotification(
-                        token.getToken(),
+                        userId,
+                        "TEST",
+                        testReferenceId,
                         "Nurture AI 🔔",
                         "Test notification received successfully!"
                 );
 
-                sent++;
+        if (sent) {
 
-            } catch (Exception e) {
-
-                System.err.println(
-                        "Failed to send notification for token: "
-                                + e.getMessage()
-                );
-            }
+            return ResponseEntity.ok(
+                    Map.of(
+                            "success", true,
+                            "message",
+                            "Test notification sent successfully",
+                            "sent", true,
+                            "totalTokens", tokens.size()
+                    )
+            );
         }
 
         return ResponseEntity.ok(
                 Map.of(
-                        "success", true,
+                        "success", false,
                         "message",
-                        "Test notification process completed",
-                        "sent", sent,
+                        "Notification could not be sent",
+                        "sent", false,
                         "totalTokens", tokens.size()
                 )
         );

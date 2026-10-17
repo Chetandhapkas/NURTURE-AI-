@@ -1,11 +1,6 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
 
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import {
   FaUserCircle,
   FaPhone,
@@ -23,2182 +18,1080 @@ import {
   FaHospital,
   FaUserMd,
   FaCheckCircle,
-  FaTimesCircle,
-  FaHourglassHalf,
+  FaSyringe,
+  FaClipboardList,
+  FaExclamationTriangle,
+  FaSyncAlt,
 } from "react-icons/fa";
 
-import API from "../../services/api";
-
+import api from "../../services/api";
 import "./FamilyDashboard.css";
 
+const getToday = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}-${String(now.getDate()).padStart(2, "0")}`;
+};
 
-function FamilyDashboard() {
+const formatDate = (value) => {
+  if (!value) return "Not available";
 
-  const navigate = useNavigate();
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
 
-
-  // =========================================================
-  // MOTHER INFORMATION
-  // =========================================================
-
-  const [mother, setMother] = useState({
-    name: null,
-    email: null,
-    phone: null,
-    age: null,
+  return date.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   });
-
-
-  // =========================================================
-  // PREGNANCY INFORMATION
-  // =========================================================
-
-  const [pregnancy, setPregnancy] = useState({
-    pregnancyWeek: null,
-    trimester: null,
-    dueDate: null,
-    pregnancyType: null,
-    babyCount: null,
-    highRisk: null,
-  });
-
-
-  // =========================================================
-  // ALL APPOINTMENTS
-  // =========================================================
-
-  const [appointments, setAppointments] = useState([]);
-
-
-  // =========================================================
-  // HEALTH SCORE
-  // =========================================================
-
-  const [healthScore, setHealthScore] = useState(null);
-
-
-  // =========================================================
-  // LOADING
-  // =========================================================
-
-  const [loading, setLoading] = useState(true);
-
-
-  // =========================================================
-  // ERROR
-  // =========================================================
-
-  const [error, setError] = useState("");
-
-
-  // =========================================================
-  // LOAD FAMILY DASHBOARD
-  // =========================================================
-
-  useEffect(() => {
-
-    let isMounted = true;
-
-
-    const loadFamilyDashboard = async () => {
-
-      try {
-
-        setLoading(true);
-        setError("");
-
-
-        // =====================================================
-        // GET LOGGED-IN FAMILY MEMBER USER ID
-        // =====================================================
-
-        const familyMemberUserId =
-          localStorage.getItem("userId");
-
-
-        console.log(
-          "========================================"
-        );
-
-        console.log(
-          "FAMILY DASHBOARD"
-        );
-
-        console.log(
-          "Logged-in Family Member User ID:",
-          familyMemberUserId
-        );
-
-        console.log(
-          "========================================"
-        );
-
-
-        // =====================================================
-        // VALIDATE USER ID
-        // =====================================================
-
-        if (
-          !familyMemberUserId ||
-          familyMemberUserId === "null" ||
-          familyMemberUserId === "undefined"
-        ) {
-
-          if (isMounted) {
-
-            setError(
-              "Your login session was not found. Please login again."
-            );
-
-            setLoading(false);
-
-          }
-
-          return;
-        }
-
-
-        // =====================================================
-        // HTTPS-COMPATIBLE API REQUEST
-        // =====================================================
-        //
-        // IMPORTANT:
-        //
-        // Do NOT use:
-        //
-        // http://localhost:8080/api
-        //
-        // API service already uses:
-        //
-        // baseURL: "/api"
-        //
-        // Vite HTTPS proxy forwards the request
-        // to Spring Boot.
-        //
-        // withCredentials sends the session cookie.
-        //
-        // =====================================================
-
-        const response =
-          await API.get(
-            `/family-members/dashboard/${familyMemberUserId}`,
-            {
-              withCredentials: true,
-            }
-          );
-
-
-        console.log(
-          "========================================"
-        );
-
-        console.log(
-          "FAMILY DASHBOARD API RESPONSE:"
-        );
-
-        console.log(
-          response.data
-        );
-
-        console.log(
-          "========================================"
-        );
-
-
-        const data =
-          response.data;
-
-
-        // =====================================================
-        // CHECK RESPONSE
-        // =====================================================
-
-        if (!data) {
-
-          throw new Error(
-            "Empty response received from server."
-          );
-        }
-
-
-        // =====================================================
-        // MOTHER INFORMATION
-        // =====================================================
-
-        if (isMounted) {
-
-          setMother({
-
-            name:
-              data.name ??
-              "Not available",
-
-            email:
-              data.email ??
-              "Not available",
-
-            phone:
-              data.phone ??
-              "Not available",
-
-            age:
-              data.age ??
-              "Not available",
-
-          });
-
-        }
-
-
-        // =====================================================
-        // PREGNANCY INFORMATION
-        // =====================================================
-
-        if (isMounted) {
-
-          setPregnancy({
-
-            pregnancyWeek:
-              data.pregnancyWeek ??
-              null,
-
-            trimester:
-              data.trimester ??
-              null,
-
-            dueDate:
-              data.dueDate ??
-              null,
-
-            pregnancyType:
-              data.pregnancyType ??
-              null,
-
-            babyCount:
-              data.babyCount ??
-              null,
-
-            highRisk:
-              data.highRisk ??
-              null,
-
-          });
-
-        }
-
-
-        // =====================================================
-        // ALL APPOINTMENTS
-        //
-        // Backend response:
-        //
-        // {
-        //    appointments: [...]
-        // }
-        //
-        // =====================================================
-
-        const backendAppointments =
-          Array.isArray(data.appointments)
-            ? data.appointments
-            : [];
-
-
-        console.log(
-          "========================================"
-        );
-
-        console.log(
-          "MOTHER APPOINTMENTS:"
-        );
-
-        console.log(
-          backendAppointments
-        );
-
-        console.log(
-          "TOTAL APPOINTMENTS:",
-          backendAppointments.length
-        );
-
-        console.log(
-          "========================================"
-        );
-
-
-        // =====================================================
-        // NORMALIZE APPOINTMENTS
-        // =====================================================
-
-        const normalizedAppointments =
-          backendAppointments
-            .filter(
-              (appointment) =>
-                appointment &&
-                typeof appointment === "object"
-            )
-            .map(
-              (appointment, index) => {
-
-                return {
-
-                  ...appointment,
-
-                  id:
-                    appointment.id ??
-                    appointment.appointmentId ??
-                    `appointment-${index}`,
-
-                  doctorName:
-                    appointment.doctorName ??
-                    appointment.doctor?.name ??
-                    appointment.doctor?.fullName ??
-                    null,
-
-                  specialization:
-                    appointment.specialization ??
-                    appointment.doctor?.specialization ??
-                    null,
-
-                  appointmentDate:
-                    appointment.appointmentDate ??
-                    appointment.date ??
-                    null,
-
-                  appointmentTime:
-                    appointment.appointmentTime ??
-                    appointment.time ??
-                    null,
-
-                  hospital:
-                    appointment.hospital ??
-                    appointment.hospitalName ??
-                    null,
-
-                  status:
-                    appointment.status ??
-                    appointment.appointmentStatus ??
-                    "UPCOMING",
-
-                };
-
-              }
-            );
-
-
-        // =====================================================
-        // REMOVE DUPLICATE APPOINTMENTS
-        // =====================================================
-
-        const uniqueAppointments =
-          Array.from(
-            new Map(
-              normalizedAppointments.map(
-                (appointment) => {
-
-                  const key =
-                    appointment.id ??
-                    `${appointment.appointmentDate}|${appointment.appointmentTime}|${appointment.doctorName}|${appointment.hospital}`;
-
-                  return [
-                    String(key),
-                    appointment,
-                  ];
-
-                }
-              )
-            ).values()
-          );
-
-
-        // =====================================================
-        // SET APPOINTMENTS
-        // =====================================================
-
-        if (isMounted) {
-
-          setAppointments(
-            uniqueAppointments
-          );
-
-        }
-
-
-        // =====================================================
-        // HEALTH SCORE
-        // =====================================================
-
-        if (isMounted) {
-
-          setHealthScore(
-            data.healthScore ??
-            null
-          );
-
-        }
-
-
-        console.log(
-          "========================================"
-        );
-
-        console.log(
-          "FINAL APPOINTMENTS:",
-          uniqueAppointments
-        );
-
-        console.log(
-          "TOTAL:",
-          uniqueAppointments.length
-        );
-
-        console.log(
-          "========================================"
-        );
-
-
-      } catch (requestError) {
-
-        console.error(
-          "Unable to load family dashboard:",
-          requestError
-        );
-
-
-        // =====================================================
-        // BACKEND ERROR
-        // =====================================================
-
-        if (requestError.response) {
-
-          console.error(
-            "Backend status:",
-            requestError.response.status
-          );
-
-          console.error(
-            "Backend response:",
-            requestError.response.data
-          );
-
-        }
-
-
-        if (isMounted) {
-
-          let errorMessage =
-            "Unable to load mother's information. Please try again.";
-
-
-          // ===================================================
-          // UNAUTHORIZED
-          // ===================================================
-
-          if (
-            requestError.response?.status === 401
-          ) {
-
-            errorMessage =
-              "Your login session has expired. Please login again.";
-
-          }
-
-
-          // ===================================================
-          // NOT FOUND
-          // ===================================================
-
-          else if (
-            requestError.response?.status === 404
-          ) {
-
-            errorMessage =
-              "Family member or mother's profile was not found.";
-
-          }
-
-
-          // ===================================================
-          // FORBIDDEN
-          // ===================================================
-
-          else if (
-            requestError.response?.status === 403
-          ) {
-
-            errorMessage =
-              "You are not authorized to access the family dashboard.";
-
-          }
-
-
-          // ===================================================
-          // SERVER ERROR
-          // ===================================================
-
-          else if (
-            requestError.response?.status >= 500
-          ) {
-
-            errorMessage =
-              "Server error. Please check the backend.";
-
-          }
-
-
-          // ===================================================
-          // NETWORK ERROR
-          // ===================================================
-
-          else if (
-            !requestError.response
-          ) {
-
-            errorMessage =
-              "Unable to connect to the server. Please check your connection and make sure the backend is running.";
-
-          }
-
-
-          setError(
-            errorMessage
-          );
-
-        }
-
-      } finally {
-
-        if (isMounted) {
-
-          setLoading(false);
-
-        }
-
-      }
-
-    };
-
-
-    loadFamilyDashboard();
-
-
-    return () => {
-
-      isMounted = false;
-
-    };
-
-  }, []);
-
-
-  // =========================================================
-  // LOGOUT
-  // =========================================================
-
-  const handleLogout = () => {
-
-    localStorage.removeItem("userId");
-
-    localStorage.removeItem(
-      "familyMemberId"
-    );
-
-    localStorage.removeItem(
-      "familyMemberUserId"
-    );
-
-    localStorage.removeItem(
-      "patientUserId"
-    );
-
-    localStorage.removeItem(
-      "patientName"
-    );
-
-    localStorage.removeItem(
-      "patientEmail"
-    );
-
-    localStorage.removeItem(
-      "patientPhone"
-    );
-
-    localStorage.removeItem(
-      "patientAge"
-    );
-
-    localStorage.removeItem(
-      "familyProfileCreated"
-    );
-
-    localStorage.removeItem(
-      "familyVerified"
-    );
-
-
-    navigate(
-      "/login",
-      {
-        replace: true,
-      }
-    );
-
-  };
-
-
-  // =========================================================
-  // FORMAT DATE
-  // =========================================================
-
-  const formatDate = (date) => {
-
-    if (!date) {
-
-      return "Not available";
-
-    }
-
-
-    try {
-
-      const dateObject =
-        new Date(date);
-
-
-      if (
-        Number.isNaN(
-          dateObject.getTime()
-        )
-      ) {
-
-        return String(date);
-
-      }
-
-
-      return dateObject.toLocaleDateString(
-        "en-IN",
-        {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        }
-      );
-
-    } catch {
-
-      return String(date);
-
-    }
-
-  };
-
-
-  // =========================================================
-  // FORMAT TIME
-  // =========================================================
-
-  const formatTime = (time) => {
-
-    if (!time) {
-
-      return "Not available";
-
-    }
-
-
-    const timeString =
-      String(time).trim();
-
-
-    const parts =
-      timeString.split(":");
-
-
-    if (parts.length < 2) {
-
-      return timeString;
-
-    }
-
-
-    const hours =
-      parseInt(
-        parts[0],
-        10
-      );
-
-
-    const minutes =
-      parts[1];
-
-
-    if (
-      Number.isNaN(hours)
-    ) {
-
-      return timeString;
-
-    }
-
-
-    const period =
-      hours >= 12
-        ? "PM"
-        : "AM";
-
-
-    const displayHour =
-      hours % 12 || 12;
-
-
-    return `${displayHour}:${minutes} ${period}`;
-
-  };
-
-
-  // =========================================================
-  // NORMALIZE STATUS
-  // =========================================================
-
-  const normalizeStatus = (status) => {
-
-    if (!status) {
-
-      return "";
-
-    }
-
-
-    return String(status)
-      .trim()
-      .toLowerCase()
-      .replace(/[\s-]+/g, "_");
-
-  };
-
-
-  // =========================================================
-  // DISPLAY STATUS
-  // =========================================================
-
-  const displayStatus = (status) => {
-
-    if (!status) {
-
-      return "Upcoming";
-
-    }
-
-
-    return String(status)
-      .replace(/_/g, " ")
-      .replace(/-/g, " ")
-      .replace(
-        /\b\w/g,
-        (letter) =>
-          letter.toUpperCase()
-      );
-
-  };
-
-
-  // =========================================================
-  // GET APPOINTMENT DATE
-  // =========================================================
-
-  const getAppointmentDate = (
-    appointment
-  ) => {
-
-    return (
-      appointment?.appointmentDate ??
-      appointment?.date ??
-      null
-    );
-
-  };
-
-
-  // =========================================================
-  // GET APPOINTMENT TIME
-  // =========================================================
-
-  const getAppointmentTime = (
-    appointment
-  ) => {
-
-    return (
-      appointment?.appointmentTime ??
-      appointment?.time ??
-      null
-    );
-
-  };
-
-
-  // =========================================================
-  // GET APPOINTMENT DATE OBJECT
-  // =========================================================
-
-  const getAppointmentDateObject = (
-    appointment
-  ) => {
-
-    const date =
-      getAppointmentDate(
-        appointment
-      );
-
-
-    const time =
-      getAppointmentTime(
-        appointment
-      );
-
-
-    if (!date) {
-
-      return null;
-
-    }
-
-
-    let dateString =
-      String(date).trim();
-
-
-    // =====================================================
-    // DATE ALREADY CONTAINS TIME
-    // =====================================================
-
-    const hasTime =
-      dateString.includes("T") ||
-      dateString.includes(" ");
-
-
-    if (
-      time &&
-      !hasTime
-    ) {
-
-      dateString =
-        `${dateString}T${String(time).trim()}`;
-
-    }
-
-
-    const result =
-      new Date(dateString);
-
-
-    if (
-      Number.isNaN(
-        result.getTime()
-      )
-    ) {
-
-      return null;
-
-    }
-
-
-    return result;
-
-  };
-
-
-  // =========================================================
-  // GET APPOINTMENT CATEGORY
-  // =========================================================
-
-  const getAppointmentCategory = (
-    appointment
-  ) => {
-
-    const status =
-      normalizeStatus(
-        appointment?.status ??
-        appointment?.appointmentStatus
-      );
-
-
-    // =====================================================
-    // CANCELLED
-    // =====================================================
-
-    if (
-      status.includes("cancel") ||
-      status.includes("reject")
-    ) {
-
-      return "cancelled";
-
-    }
-
-
-    // =====================================================
-    // COMPLETED
-    // =====================================================
-
-    if (
-      status.includes("complete") ||
-      status.includes("completed") ||
-      status.includes("done") ||
-      status.includes("finished")
-    ) {
-
-      return "completed";
-
-    }
-
-
-    // =====================================================
-    // DATE-BASED CHECK
-    // =====================================================
-
-    const appointmentDate =
-      getAppointmentDateObject(
-        appointment
-      );
-
-
-    if (
-      appointmentDate &&
-      appointmentDate < new Date()
-    ) {
-
-      return "completed";
-
-    }
-
-
-    // =====================================================
-    // OTHERWISE UPCOMING
-    // =====================================================
-
-    return "upcoming";
-
-  };
-
-
-  // =========================================================
-  // COMPLETED APPOINTMENTS
-  // =========================================================
-
-  const completedAppointments =
-    useMemo(() => {
-
-      return appointments.filter(
-        (appointment) =>
-          getAppointmentCategory(
-            appointment
-          ) === "completed"
-      );
-
-    }, [appointments]);
-
-
-  // =========================================================
-  // UPCOMING APPOINTMENTS
-  // =========================================================
-
-  const upcomingAppointments =
-    useMemo(() => {
-
-      return appointments
-        .filter(
-          (appointment) =>
-            getAppointmentCategory(
-              appointment
-            ) === "upcoming"
-        )
-        .sort(
-          (a, b) => {
-
-            const dateA =
-              getAppointmentDateObject(
-                a
-              )?.getTime() ??
-              Infinity;
-
-
-            const dateB =
-              getAppointmentDateObject(
-                b
-              )?.getTime() ??
-              Infinity;
-
-
-            return dateA - dateB;
-
-          }
-        );
-
-    }, [appointments]);
-
-
-  // =========================================================
-  // CANCELLED APPOINTMENTS
-  // =========================================================
-
-  const cancelledAppointments =
-    useMemo(() => {
-
-      return appointments.filter(
-        (appointment) =>
-          getAppointmentCategory(
-            appointment
-          ) === "cancelled"
-      );
-
-    }, [appointments]);
-
-
-  // =========================================================
-  // NEXT UPCOMING APPOINTMENT
-  // =========================================================
-
-  const nextUpcomingAppointment =
-    upcomingAppointments.length > 0
-      ? upcomingAppointments[0]
-      : null;
-
-
-  // =========================================================
-  // STATUS CSS CLASS
-  // =========================================================
-
-  const getStatusClass = (
-    status
-  ) => {
-
-    const normalized =
-      normalizeStatus(status);
-
-
-    if (
-      normalized.includes("complete")
-    ) {
-
-      return "appointment-status completed";
-
-    }
-
-
-    if (
-      normalized.includes("cancel") ||
-      normalized.includes("reject")
-    ) {
-
-      return "appointment-status cancelled";
-
-    }
-
-
-    if (
-      normalized.includes("pending")
-    ) {
-
-      return "appointment-status pending";
-
-    }
-
-
-    if (
-      normalized.includes("confirm")
-    ) {
-
-      return "appointment-status confirmed";
-
-    }
-
-
-    return "appointment-status upcoming";
-
-  };
-
-
-  // =========================================================
-  // STATUS ICON
-  // =========================================================
-
-  const getStatusIcon = (
-    status
-  ) => {
-
-    const normalized =
-      normalizeStatus(status);
-
-
-    if (
-      normalized.includes("complete")
-    ) {
-
-      return <FaCheckCircle />;
-
-    }
-
-
-    if (
-      normalized.includes("cancel") ||
-      normalized.includes("reject")
-    ) {
-
-      return <FaTimesCircle />;
-
-    }
-
-
-    if (
-      normalized.includes("pending")
-    ) {
-
-      return <FaHourglassHalf />;
-
-    }
-
-
-    return <FaCalendarAlt />;
-
-  };
-
-
-  // =========================================================
-  // LOADING SCREEN
-  // =========================================================
-
-  if (loading) {
-
-    return (
-
-      <div className="family-dashboard-loading">
-
-        <div className="family-loading-spinner"></div>
-
-        <p>
-          Loading family dashboard...
-        </p>
-
-      </div>
-
-    );
-
+};
+
+const formatTime = (value) => {
+  if (!value) return "Not scheduled";
+
+  const time = String(value);
+
+  if (/^\d{2}:\d{2}(:\d{2})?$/.test(time)) {
+    const [hours, minutes] = time.split(":").map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+
+    return date.toLocaleTimeString("en-IN", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
   }
 
-
-  // =========================================================
-  // ERROR SCREEN
-  // =========================================================
-
-  if (error) {
-
-    return (
-
-      <div className="family-dashboard-loading">
-
-        <FaTimesCircle
-          style={{
-            fontSize: "45px",
-            marginBottom: "15px",
-          }}
-        />
-
-        <h3>
-          Unable to Load Dashboard
-        </h3>
-
-        <p>
-          {error}
-        </p>
-
-        <button
-          className="family-back-btn"
-          onClick={() =>
-            window.location.reload()
-          }
-          style={{
-            marginTop: "15px",
-          }}
-        >
-          Try Again
-        </button>
-
-        <button
-          className="family-back-btn"
-          onClick={() =>
-            navigate("/login", {
-              replace: true,
-            })
-          }
-          style={{
-            marginTop: "10px",
-          }}
-        >
-          Go to Login
-        </button>
-
-      </div>
-
-    );
-
+  const date = new Date(value);
+  if (!Number.isNaN(date.getTime())) {
+    return date.toLocaleTimeString("en-IN", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
   }
 
+  return time;
+};
 
-  // =========================================================
-  // DASHBOARD
-  // =========================================================
+const formatValue = (value, fallback = "Not available") => {
+  if (value === null || value === undefined || value === "") {
+    return fallback;
+  }
+
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+
+  return String(value);
+};
+
+const normalizeStatus = (value) =>
+  String(value || "PENDING")
+    .trim()
+    .replace(/[_-]+/g, " ")
+    .toUpperCase();
+
+const getStatusClass = (value) => {
+  const status = normalizeStatus(value);
+
+  if (
+    status.includes("COMPLETED") ||
+    status.includes("TAKEN") ||
+    status.includes("CONFIRMED") ||
+    status.includes("DONE")
+  ) {
+    return "status-success";
+  }
+
+  if (
+    status.includes("CANCELLED") ||
+    status.includes("CANCELED") ||
+    status.includes("MISSED")
+  ) {
+    return "status-danger";
+  }
+
+  if (
+    status.includes("PENDING") ||
+    status.includes("SCHEDULED") ||
+    status.includes("UPCOMING") ||
+    status.includes("ACTIVE")
+  ) {
+    return "status-pending";
+  }
+
+  return "status-neutral";
+};
+
+const displayStatus = (value) => {
+  const status = normalizeStatus(value);
+
+  const labels = {
+    TAKEN: "Taken",
+    COMPLETED: "Completed",
+    PENDING: "Pending",
+    ACTIVE: "Active",
+    CANCELLED: "Cancelled",
+    CANCELED: "Cancelled",
+    SCHEDULED: "Scheduled",
+    CONFIRMED: "Confirmed",
+    MISSED: "Missed",
+    LOCKED: "Locked",
+  };
 
   return (
+    labels[status] ||
+    status.toLowerCase().replace(/\b\w/g, (character) =>
+      character.toUpperCase()
+    )
+  );
+};
 
-    <div className="family-dashboard">
+const getAppointmentDate = (appointment) =>
+  appointment?.appointmentDate ||
+  appointment?.scheduledDate ||
+  appointment?.date ||
+  null;
 
+const getAppointmentTime = (appointment) =>
+  appointment?.appointmentTime ||
+  appointment?.scheduledTime ||
+  appointment?.time ||
+  null;
 
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
+const getAppointmentStatus = (appointment) =>
+  appointment?.status || "SCHEDULED";
 
+const getBackendErrorMessage = (err) => {
+  const data = err?.response?.data;
+
+  if (typeof data === "string" && data.trim()) {
+    return data;
+  }
+
+  if (data && typeof data === "object") {
+    if (data.message) return String(data.message);
+    if (data.error) return String(data.error);
+    if (data.detail) return String(data.detail);
+    if (data.title) return String(data.title);
+  }
+
+  if (err?.response?.status === 400) {
+    return "The server rejected the dashboard request (400 Bad Request). Check the backend error in the terminal.";
+  }
+
+  if (err?.response?.status === 401) {
+    return "Your session is not authorized. Please log in again.";
+  }
+
+  if (err?.response?.status === 403) {
+    return "You do not have permission to view this family dashboard.";
+  }
+
+  if (err?.response?.status === 404) {
+    return "The family dashboard endpoint or linked family member was not found.";
+  }
+
+  if (!err?.response) {
+    return "Cannot connect to the backend. Make sure the Spring Boot server is running.";
+  }
+
+  return err.message || "Unable to load the family dashboard.";
+};
+
+const FamilyDashboard = () => {
+  const navigate = useNavigate();
+
+  const [dashboard, setDashboard] = useState(null);
+  const [medicines, setMedicines] = useState([]);
+  const [todayMedicineSchedule, setTodayMedicineSchedule] = useState([]);
+  const [vaccinations, setVaccinations] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState("");
+
+  const familyMemberUserId = localStorage.getItem("userId");
+
+  const loadDashboard = async (isRefresh = false) => {
+    if (!familyMemberUserId) {
+      const message = "Your login session was not found. Please log in again.";
+      console.error("Family dashboard error:", message);
+      setError(message);
+      setLoading(false);
+      setRefreshing(false);
+      return;
+    }
+
+    if (isRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+
+    setError("");
+
+    try {
+      console.info(
+        "Loading family dashboard for user ID:",
+        familyMemberUserId
+      );
+
+      const response = await api.get(
+        `/family-members/dashboard/${familyMemberUserId}`,
+        { withCredentials: true }
+      );
+
+      const data = response?.data || {};
+
+      console.info("Family dashboard loaded successfully:", data);
+
+      setDashboard(data);
+      setMedicines(
+        Array.isArray(data.medicines) ? data.medicines : []
+      );
+      setTodayMedicineSchedule(
+        Array.isArray(data.todayMedicineSchedule)
+          ? data.todayMedicineSchedule
+          : []
+      );
+      setVaccinations(
+        Array.isArray(data.vaccinations) ? data.vaccinations : []
+      );
+    } catch (err) {
+      const message = getBackendErrorMessage(err);
+
+      console.error("Failed to load family dashboard:", err);
+      console.error("Dashboard request URL:", 
+        `/family-members/dashboard/${familyMemberUserId}`
+      );
+      console.error("HTTP status:", err?.response?.status);
+      console.error("Backend error response:", err?.response?.data);
+      console.error("Dashboard error message:", message);
+
+      setError(message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDashboard();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [familyMemberUserId]);
+
+  const appointments = useMemo(
+    () =>
+      Array.isArray(dashboard?.appointments)
+        ? dashboard.appointments
+        : [],
+    [dashboard]
+  );
+
+  const upcomingAppointments = useMemo(() => {
+    const today = getToday();
+
+    return appointments
+      .filter((appointment) => {
+        const status = normalizeStatus(getAppointmentStatus(appointment));
+        const date = getAppointmentDate(appointment);
+
+        return (
+          date &&
+          date >= today &&
+          !status.includes("CANCELLED") &&
+          !status.includes("CANCELED") &&
+          !status.includes("COMPLETED") &&
+          !status.includes("DONE")
+        );
+      })
+      .sort((a, b) => {
+        const dateA = `${getAppointmentDate(a)} ${
+          getAppointmentTime(a) || ""
+        }`;
+        const dateB = `${getAppointmentDate(b)} ${
+          getAppointmentTime(b) || ""
+        }`;
+
+        return dateA.localeCompare(dateB);
+      });
+  }, [appointments]);
+
+  const completedAppointments = useMemo(
+    () =>
+      appointments.filter((appointment) => {
+        const status = normalizeStatus(getAppointmentStatus(appointment));
+
+        return (
+          status.includes("COMPLETED") ||
+          status.includes("DONE") ||
+          status.includes("VISITED")
+        );
+      }),
+    [appointments]
+  );
+
+  const nextUpcomingAppointment = upcomingAppointments[0] || null;
+
+  const nextUpcomingVaccination = useMemo(() => {
+    const today = getToday();
+
+    return (
+      vaccinations
+        .filter((vaccination) => {
+          const status = normalizeStatus(vaccination?.status);
+          const date =
+            vaccination?.scheduledDate || vaccination?.availableFrom;
+
+          return (
+            date &&
+            date >= today &&
+            !status.includes("COMPLETED") &&
+            !status.includes("TAKEN") &&
+            !status.includes("CANCELLED") &&
+            !status.includes("CANCELED")
+          );
+        })
+        .sort((a, b) => {
+          const dateA = a.scheduledDate || a.availableFrom || "";
+          const dateB = b.scheduledDate || b.availableFrom || "";
+          return dateA.localeCompare(dateB);
+        })[0] || null
+    );
+  }, [vaccinations]);
+
+  const sortedTodaySchedule = useMemo(
+    () =>
+      [...todayMedicineSchedule].sort((a, b) =>
+        String(a?.scheduledTime || "").localeCompare(
+          String(b?.scheduledTime || "")
+        )
+      ),
+    [todayMedicineSchedule]
+  );
+
+  const motherName = dashboard?.name || "Mother";
+  const pregnancyWeek = dashboard?.pregnancyWeek;
+  const healthScore = dashboard?.healthScore;
+  const dueDate = dashboard?.dueDate;
+  const trimester = dashboard?.trimester;
+
+  const handleLogout = () => {
+    localStorage.removeItem("userId");
+    localStorage.removeItem("fullName");
+    localStorage.removeItem("email");
+    localStorage.removeItem("role");
+    localStorage.removeItem("familyVerified");
+    navigate("/login");
+  };
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/dashboard");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="family-dashboard-page">
+        <div className="family-dashboard-loading">
+          <div className="family-loading-spinner" />
+          <h2>Loading Family Dashboard</h2>
+          <p>Please wait while we load the latest information.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !dashboard) {
+    return (
+      <div className="family-dashboard-page">
+        <div className="family-dashboard-error" role="alert">
+          <FaExclamationTriangle />
+          <h2>Unable to Load Dashboard</h2>
+          <p>{error}</p>
+
+          <div className="family-error-actions">
+            <button
+              type="button"
+              className="family-primary-button"
+              onClick={() => loadDashboard()}
+              disabled={loading}
+            >
+              <FaSyncAlt /> Try Again
+            </button>
+
+            <button
+  type="button"
+  className="family-logout-button"
+  onClick={handleLogout}
+  aria-label="Log out"
+  title="Log out"
+>
+  <FaSignOutAlt />
+  <span>Logout</span>
+</button>
+
+            <button
+              type="button"
+              className="family-secondary-button"
+              onClick={handleLogout}
+            >
+              <FaSignOutAlt /> Log Out
+            </button>
+          </div>
+
+          <p className="family-error-help">
+            If this continues, check the Spring Boot terminal for the
+            exception generated by the dashboard API.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="family-dashboard-page">
       <header className="family-dashboard-header">
-
         <div className="family-header-left">
+          <button
+            type="button"
+            className="family-icon-button"
+            onClick={handleBack}
+            aria-label="Go back"
+            title="Go back"
+          >
+            <FaArrowLeft />
+          </button>
 
-          <div className="family-logo-icon">
-            <FaBaby />
+          <div className="family-brand-mark">
+            <FaHeart />
           </div>
 
-          <div>
-
-            <h1>
-              Nurture AI
-            </h1>
-
-            <span>
-              Family Support Dashboard
-            </span>
-
+          <div className="family-header-title">
+            <h1>NURTURE AI</h1>
+            <p>Family Care Dashboard</p>
           </div>
-
         </div>
 
+        <div className="family-header-actions">
+          <button
+            type="button"
+            className="family-refresh-button"
+            onClick={() => loadDashboard(true)}
+            disabled={refreshing}
+          >
+            <FaSyncAlt className={refreshing ? "family-spinning" : ""} />
+            <span>{refreshing ? "Refreshing..." : "Refresh"}</span>
+          </button>
 
-        <button
-          className="family-logout-btn"
-          onClick={handleLogout}
-        >
-
-          <FaSignOutAlt />
-
-          <span>
-            Logout
-          </span>
-
-        </button>
-
+          <button
+            type="button"
+            className="family-logout-button"
+            onClick={handleLogout}
+          >
+            <FaSignOutAlt />
+            <span>Logout</span>
+          </button>
+        </div>
       </header>
 
-
-      {/* =====================================================
-          MAIN CONTENT
-      ===================================================== */}
-
-      <main className="family-dashboard-content">
-
-
-        {/* ===================================================
-            WELCOME
-        =================================================== */}
-
-        <section className="family-welcome">
-
-          <div>
-
-            <p className="family-welcome-small">
-              Welcome back 👋
-            </p>
-
-            <h2>
-              Family Health Dashboard
-            </h2>
-
-            <p>
-              Stay connected with your
-              loved one's pregnancy journey
-              and important health information.
-            </p>
-
+      <main className="family-dashboard-main">
+        {error && (
+          <div className="family-inline-error" role="alert">
+            <FaExclamationTriangle />
+            <span>
+              {error} Displaying the last successfully loaded information.
+            </span>
+            <button
+              type="button"
+              onClick={() => loadDashboard(true)}
+              disabled={refreshing}
+            >
+              Retry
+            </button>
           </div>
+        )}
 
+        <section className="family-welcome-banner">
+          <div className="family-welcome-content">
+            <span className="family-eyebrow">FAMILY OVERVIEW</span>
+            <h2>Welcome to your Family Dashboard</h2>
+            <p>
+              Stay connected with {motherName}&apos;s pregnancy journey,
+              appointments, medicines, and vaccination schedule.
+            </p>
+          </div>
 
           <div className="family-welcome-icon">
             <FaHeart />
           </div>
-
         </section>
 
-
-        {/* ===================================================
-            MOTHER INFORMATION
-        =================================================== */}
-
-        <section className="family-section">
-
-          <div className="family-section-title">
-
-            <div className="section-title-icon">
-              <FaUserCircle />
-            </div>
-
-            <div>
-
-              <h3>
-                Mother Information
-              </h3>
-
-              <p>
-                Basic information about the mother
-              </p>
-
-            </div>
-
+        <section className="family-mother-profile family-panel">
+          <div className="family-profile-avatar">
+            <FaUserCircle />
           </div>
 
+          <div className="family-profile-details">
+            <span className="family-section-kicker">MOTHER&apos;S PROFILE</span>
+            <h2>{motherName}</h2>
 
-          <div className="mother-profile-card">
+            <div className="family-profile-meta">
+              {dashboard?.email && (
+                <span>
+                  <FaEnvelope /> {dashboard.email}
+                </span>
+              )}
 
-            <div className="mother-avatar">
-              <FaUserCircle />
+              {dashboard?.phone && (
+                <span>
+                  <FaPhone /> {dashboard.phone}
+                </span>
+              )}
+
+              {dashboard?.age !== null &&
+                dashboard?.age !== undefined &&
+                dashboard?.age !== "" && (
+                  <span>
+                    <FaBirthdayCake /> {dashboard.age} years old
+                  </span>
+                )}
             </div>
-
-
-            <div className="mother-information">
-
-              <h2>
-                {mother.name}
-              </h2>
-
-
-              <div className="mother-info-grid">
-
-
-                {/* EMAIL */}
-
-                <div className="mother-info-item">
-
-                  <FaEnvelope />
-
-                  <div>
-
-                    <span>
-                      Email
-                    </span>
-
-                    <strong>
-                      {mother.email}
-                    </strong>
-
-                  </div>
-
-                </div>
-
-
-                {/* PHONE */}
-
-                <div className="mother-info-item">
-
-                  <FaPhone />
-
-                  <div>
-
-                    <span>
-                      Phone
-                    </span>
-
-                    <strong>
-                      {mother.phone}
-                    </strong>
-
-                  </div>
-
-                </div>
-
-
-                {/* AGE */}
-
-                <div className="mother-info-item">
-
-                  <FaBirthdayCake />
-
-                  <div>
-
-                    <span>
-                      Age
-                    </span>
-
-                    <strong>
-                      {mother.age}
-                    </strong>
-
-                  </div>
-
-                </div>
-
-
-                {/* CONNECTION */}
-
-                <div className="mother-info-item">
-
-                  <FaShieldAlt />
-
-                  <div>
-
-                    <span>
-                      Connection
-                    </span>
-
-                    <strong className="verified-text">
-                      Verified
-                    </strong>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
           </div>
 
+          <div className="family-profile-tag">
+            <FaHeart /> Pregnancy Care
+          </div>
         </section>
 
-
-        {/* ===================================================
-            PREGNANCY OVERVIEW
-        =================================================== */}
-
-        <section className="family-section">
-
-          <div className="family-section-title">
-
-            <div className="section-title-icon">
+        <section className="family-summary-grid">
+          <article className="family-summary-card">
+            <div className="family-summary-icon pregnancy-icon">
               <FaBaby />
             </div>
-
             <div>
-
+              <p>Pregnancy Week</p>
               <h3>
-                Pregnancy Overview
+                {pregnancyWeek !== null &&
+                pregnancyWeek !== undefined &&
+                pregnancyWeek !== ""
+                  ? `Week ${pregnancyWeek}`
+                  : "Not available"}
               </h3>
-
-              <p>
-                Keep track of important pregnancy information
-              </p>
-
+              <span>{formatValue(trimester, "Trimester not available")}</span>
             </div>
+          </article>
 
-          </div>
-
-
-          <div className="family-stats-grid">
-
-
-            {/* PREGNANCY WEEK */}
-
-            <div className="family-stat-card">
-
-              <div className="family-stat-icon">
-                <FaBaby />
-              </div>
-
-              <div>
-
-                <span>
-                  Pregnancy Week
-                </span>
-
-                <strong>
-                  {pregnancy.pregnancyWeek ??
-                    "--"}
-                </strong>
-
-                <small>
-                  {pregnancy.trimester ??
-                    "Pregnancy information"}
-                </small>
-
-              </div>
-
+          <article className="family-summary-card">
+            <div className="family-summary-icon appointment-icon">
+              <FaCalendarAlt />
             </div>
-
-
-            {/* HEALTH SCORE */}
-
-            <div className="family-stat-card">
-
-              <div className="family-stat-icon">
-                <FaHeart />
-              </div>
-
-              <div>
-
-                <span>
-                  Health Score
-                </span>
-
-                <strong>
-                  {healthScore ??
-                    "--"}
-                </strong>
-
-                <small>
-                  Daily health score
-                </small>
-
-              </div>
-
+            <div>
+              <p>Upcoming Appointments</p>
+              <h3>{upcomingAppointments.length}</h3>
+              <span>
+                {nextUpcomingAppointment
+                  ? formatDate(getAppointmentDate(nextUpcomingAppointment))
+                  : "No upcoming appointments"}
+              </span>
             </div>
+          </article>
 
-
-            {/* NEXT APPOINTMENT */}
-
-            <div className="family-stat-card">
-
-              <div className="family-stat-icon">
-                <FaCalendarAlt />
-              </div>
-
-              <div>
-
-                <span>
-                  Next Appointment
-                </span>
-
-                <strong>
-
-                  {nextUpcomingAppointment
-                    ? formatDate(
-                        getAppointmentDate(
-                          nextUpcomingAppointment
-                        )
-                      )
-                    : "No appointment"}
-
-                </strong>
-
-                <small>
-
-                  {nextUpcomingAppointment?.doctorName
-                    ? `Dr. ${nextUpcomingAppointment.doctorName}`
-                    : "No upcoming appointment"}
-
-                </small>
-
-              </div>
-
+          <article className="family-summary-card">
+            <div className="family-summary-icon medicine-icon">
+              <FaPills />
             </div>
-
-
-            {/* DUE DATE */}
-
-            <div className="family-stat-card">
-
-              <div className="family-stat-icon">
-                <FaCalendarAlt />
-              </div>
-
-              <div>
-
-                <span>
-                  Due Date
-                </span>
-
-                <strong>
-
-                  {pregnancy.dueDate
-                    ? formatDate(
-                        pregnancy.dueDate
-                      )
-                    : "--"}
-
-                </strong>
-
-                <small>
-                  Expected delivery date
-                </small>
-
-              </div>
-
+            <div>
+              <p>Medicines</p>
+              <h3>{medicines.length}</h3>
+              <span>{todayMedicineSchedule.length} scheduled today</span>
             </div>
+          </article>
 
-          </div>
-
+          <article className="family-summary-card">
+            <div className="family-summary-icon vaccination-icon">
+              <FaSyringe />
+            </div>
+            <div>
+              <p>Vaccinations</p>
+              <h3>{vaccinations.length}</h3>
+              <span>
+                {nextUpcomingVaccination
+                  ? `Next: ${formatDate(
+                      nextUpcomingVaccination.scheduledDate ||
+                        nextUpcomingVaccination.availableFrom
+                    )}`
+                  : "No upcoming vaccination"}
+              </span>
+            </div>
+          </article>
         </section>
 
-
-        {/* ===================================================
-            APPOINTMENT SUMMARY
-        =================================================== */}
-
         <section className="family-section">
-
-          <div className="family-section-title">
-
-            <div className="section-title-icon">
-              <FaCalendarAlt />
-            </div>
-
+          <div className="family-section-heading">
             <div>
-
-              <h3>
-                Appointment Overview
-              </h3>
-
-              <p>
-                Overview of all appointment statuses
-              </p>
-
+              <span className="family-section-kicker">PREGNANCY DETAILS</span>
+              <h2>Pregnancy Overview</h2>
+              <p>Important information about the current pregnancy.</p>
             </div>
-
+            <div className="family-heading-icon">
+              <FaBaby />
+            </div>
           </div>
 
-
-          <div className="appointment-summary-grid">
-
-
-            {/* COMPLETED */}
-
-            <div className="appointment-summary-card completed-summary">
-
-              <div className="appointment-summary-icon">
-                <FaCheckCircle />
-              </div>
-
-              <div>
-
-                <span>
-                  Completed
-                </span>
-
-                <strong>
-                  {completedAppointments.length}
-                </strong>
-
-                <small>
-                  Completed appointments
-                </small>
-
-              </div>
-
+          <div className="family-info-grid">
+            <div className="family-info-card">
+              <span className="family-info-label">Pregnancy Week</span>
+              <strong>
+                {pregnancyWeek !== null &&
+                pregnancyWeek !== undefined &&
+                pregnancyWeek !== ""
+                  ? `Week ${pregnancyWeek}`
+                  : "Not available"}
+              </strong>
             </div>
 
-
-            {/* UPCOMING */}
-
-            <div className="appointment-summary-card upcoming-summary">
-
-              <div className="appointment-summary-icon">
-                <FaCalendarAlt />
-              </div>
-
-              <div>
-
-                <span>
-                  Upcoming
-                </span>
-
-                <strong>
-                  {upcomingAppointments.length}
-                </strong>
-
-                <small>
-                  Future appointments
-                </small>
-
-              </div>
-
+            <div className="family-info-card">
+              <span className="family-info-label">Trimester</span>
+              <strong>{formatValue(trimester)}</strong>
             </div>
 
-
-            {/* CANCELLED */}
-
-            <div className="appointment-summary-card cancelled-summary">
-
-              <div className="appointment-summary-icon">
-                <FaTimesCircle />
-              </div>
-
-              <div>
-
-                <span>
-                  Cancelled
-                </span>
-
-                <strong>
-                  {cancelledAppointments.length}
-                </strong>
-
-                <small>
-                  Cancelled appointments
-                </small>
-
-              </div>
-
+            <div className="family-info-card">
+              <span className="family-info-label">Expected Due Date</span>
+              <strong>{formatDate(dueDate)}</strong>
             </div>
 
+            <div className="family-info-card">
+              <span className="family-info-label">Pregnancy Type</span>
+              <strong>{formatValue(dashboard?.pregnancyType)}</strong>
+            </div>
+
+            <div className="family-info-card">
+              <span className="family-info-label">Number of Babies</span>
+              <strong>{formatValue(dashboard?.babyCount)}</strong>
+            </div>
+
+            <div className="family-info-card">
+              <span className="family-info-label">High-Risk Pregnancy</span>
+              <strong
+                className={
+                  dashboard?.highRisk === true
+                    ? "family-risk-text"
+                    : "family-normal-text"
+                }
+              >
+                {dashboard?.highRisk === true
+                  ? "Requires extra care"
+                  : dashboard?.highRisk === false
+                    ? "Not marked high-risk"
+                    : "Not available"}
+              </strong>
+            </div>
           </div>
-
         </section>
 
-
-        {/* ===================================================
-            NEXT UPCOMING APPOINTMENT
-        =================================================== */}
-
         <section className="family-section">
-
-          <div className="family-section-title">
-
-            <div className="section-title-icon">
-              <FaCalendarAlt />
-            </div>
-
+          <div className="family-section-heading">
             <div>
-
-              <h3>
-                Upcoming Appointment
-              </h3>
-
-              <p>
-                Details of the next scheduled appointment
-              </p>
-
+              <span className="family-section-kicker">MEDICINE TRACKER</span>
+              <h2>Medicine Information</h2>
+              <p>Review prescribed medicines and today&apos;s schedule.</p>
             </div>
-
+            <div className="family-heading-icon medicine-heading-icon">
+              <FaPills />
+            </div>
           </div>
 
-
-          {/* =================================================
-              NO UPCOMING APPOINTMENT
-          ================================================= */}
-
-          {!nextUpcomingAppointment ? (
-
-            <div className="family-information-box">
-
-              <FaCalendarAlt />
-
+          <div className="family-highlight-grid">
+            <article className="family-highlight-card">
+              <div className="family-highlight-icon"><FaPills /></div>
               <div>
+                <span>Total Medicines</span>
+                <strong>{medicines.length}</strong>
+              </div>
+            </article>
 
-                <h4>
-                  No Upcoming Appointment
-                </h4>
+            <article className="family-highlight-card">
+              <div className="family-highlight-icon"><FaClock /></div>
+              <div>
+                <span>Today&apos;s Schedule</span>
+                <strong>{todayMedicineSchedule.length}</strong>
+              </div>
+            </article>
 
+            <article className="family-highlight-card">
+              <div className="family-highlight-icon"><FaBell /></div>
+              <div>
+                <span>Next Reminder</span>
+                <strong className="family-highlight-small">
+                  {sortedTodaySchedule.length
+                    ? formatTime(sortedTodaySchedule[0]?.scheduledTime)
+                    : "No schedule"}
+                </strong>
+              </div>
+            </article>
+          </div>
+
+          <div className="family-content-card">
+            <div className="family-card-heading">
+              <div>
+                <h3><FaClipboardList /> Prescribed Medicines</h3>
+                <p>Medicine details available in the system.</p>
+              </div>
+            </div>
+
+            {medicines.length === 0 ? (
+              <div className="family-empty-state">
+                <FaPills />
+                <h4>No medicine records found</h4>
                 <p>
-                  There is currently no upcoming
-                  appointment available for the mother.
+                  Medicine information will appear here when available for
+                  the mother&apos;s account.
                 </p>
-
               </div>
+            ) : (
+              <div className="family-record-list">
+                {medicines.map((medicine, index) => (
+                  <article
+                    className="family-record-item"
+                    key={medicine.id ?? `medicine-${index}`}
+                  >
+                    <div className="family-record-top">
+                      <div className="family-record-title-wrap">
+                        <div className="family-record-icon"><FaPills /></div>
+                        <div>
+                          <h4>{formatValue(medicine.medicineName, "Unnamed medicine")}</h4>
+                          <p>{formatValue(medicine.dosage, "Dosage not specified")}</p>
+                        </div>
+                      </div>
+                      <span className={`family-status ${getStatusClass(medicine.status)}`}>
+                        {displayStatus(medicine.status || "ACTIVE")}
+                      </span>
+                    </div>
 
-            </div>
+                    <div className="family-record-grid">
+                      <div><span>Frequency</span><strong>{formatValue(medicine.frequency)}</strong></div>
+                      <div><span>Start Date</span><strong>{formatDate(medicine.startDate)}</strong></div>
+                      <div><span>End Date</span><strong>{formatDate(medicine.endDate)}</strong></div>
+                      <div><span>Reminder 1</span><strong>{formatTime(medicine.reminderTime)}</strong></div>
+                      <div><span>Reminder 2</span><strong>{medicine.reminderTime2 ? formatTime(medicine.reminderTime2) : "Not set"}</strong></div>
+                      <div><span>Reminder 3</span><strong>{medicine.reminderTime3 ? formatTime(medicine.reminderTime3) : "Not set"}</strong></div>
+                    </div>
 
-          ) : (
-
-            /* =================================================
-               NEXT APPOINTMENT DETAILS
-            ================================================= */
-
-            <div className="appointment-details-card">
-
-
-              {/* HEADER */}
-
-              <div className="appointment-card-header">
-
-                <div>
-
-                  <div className="next-appointment-label">
-
-                    <FaCheckCircle />
-
-                    Next Appointment
-
-                  </div>
-
-
-                  <h3>
-                    Upcoming Medical Appointment
-                  </h3>
-
-
-                  <p>
-                    Important appointment information
-                    for the mother
-                  </p>
-
-                </div>
-
-
-                <div
-                  className={getStatusClass(
-                    nextUpcomingAppointment.status
-                  )}
-                >
-
-                  {getStatusIcon(
-                    nextUpcomingAppointment.status
-                  )}
-
-                  <span>
-
-                    {displayStatus(
-                      nextUpcomingAppointment.status
+                    {medicine.instructions && (
+                      <div className="family-record-notes">
+                        <strong>Instructions:</strong> {medicine.instructions}
+                      </div>
                     )}
-
-                  </span>
-
-                </div>
-
+                  </article>
+                ))}
               </div>
-
-
-              {/* APPOINTMENT DETAILS */}
-
-              <div className="appointment-grid">
-
-
-                {/* DOCTOR */}
-
-                <div className="appointment-info-item">
-
-                  <div className="appointment-info-icon">
-                    <FaUserMd />
-                  </div>
-
-                  <div>
-
-                    <span>
-                      Doctor
-                    </span>
-
-                    <strong>
-
-                      {nextUpcomingAppointment.doctorName
-                        ? `Dr. ${nextUpcomingAppointment.doctorName}`
-                        : "Not available"}
-
-                    </strong>
-
-                  </div>
-
-                </div>
-
-
-                {/* SPECIALIZATION */}
-
-                <div className="appointment-info-item">
-
-                  <div className="appointment-info-icon">
-                    <FaUserMd />
-                  </div>
-
-                  <div>
-
-                    <span>
-                      Specialization
-                    </span>
-
-                    <strong>
-
-                      {nextUpcomingAppointment.specialization ??
-                        "Not available"}
-
-                    </strong>
-
-                  </div>
-
-                </div>
-
-
-                {/* DATE */}
-
-                <div className="appointment-info-item">
-
-                  <div className="appointment-info-icon">
-                    <FaCalendarAlt />
-                  </div>
-
-                  <div>
-
-                    <span>
-                      Date
-                    </span>
-
-                    <strong>
-
-                      {formatDate(
-                        getAppointmentDate(
-                          nextUpcomingAppointment
-                        )
-                      )}
-
-                    </strong>
-
-                  </div>
-
-                </div>
-
-
-                {/* TIME */}
-
-                <div className="appointment-info-item">
-
-                  <div className="appointment-info-icon">
-                    <FaClock />
-                  </div>
-
-                  <div>
-
-                    <span>
-                      Time
-                    </span>
-
-                    <strong>
-
-                      {formatTime(
-                        getAppointmentTime(
-                          nextUpcomingAppointment
-                        )
-                      )}
-
-                    </strong>
-
-                  </div>
-
-                </div>
-
-
-                {/* HOSPITAL */}
-
-                <div className="appointment-info-item">
-
-                  <div className="appointment-info-icon">
-                    <FaHospital />
-                  </div>
-
-                  <div>
-
-                    <span>
-                      Hospital
-                    </span>
-
-                    <strong>
-
-                      {nextUpcomingAppointment.hospital ??
-                        "Not available"}
-
-                    </strong>
-
-                  </div>
-
-                </div>
-
-
-                {/* STATUS */}
-
-                <div className="appointment-info-item">
-
-                  <div className="appointment-info-icon">
-                    <FaShieldAlt />
-                  </div>
-
-                  <div>
-
-                    <span>
-                      Appointment Status
-                    </span>
-
-                    <strong
-                      className={getStatusClass(
-                        nextUpcomingAppointment.status
-                      )}
-                    >
-
-                      {displayStatus(
-                        nextUpcomingAppointment.status
-                      )}
-
-                    </strong>
-
-                  </div>
-
-                </div>
-
+            )}
+          </div>
+
+          <div className="family-content-card">
+            <div className="family-card-heading">
+              <div>
+                <h3><FaClock /> Today&apos;s Medicine Schedule</h3>
+                <p>Scheduled medicine entries for today.</p>
               </div>
-
+              <span className="family-date-chip">{formatDate(getToday())}</span>
             </div>
 
+            {sortedTodaySchedule.length === 0 ? (
+              <div className="family-empty-state">
+                <FaClock />
+                <h4>No medicine schedule available for today</h4>
+                <p>
+                  This section displays schedule entries created by the
+                  backend for today.
+                </p>
+              </div>
+            ) : (
+              <div className="family-schedule-list">
+                {sortedTodaySchedule.map((log, index) => (
+                  <article
+                    className="family-schedule-item"
+                    key={log.id ?? `medicine-log-${index}`}
+                  >
+                    <div className="family-schedule-time">
+                      <FaClock />
+                      <strong>{formatTime(log.scheduledTime)}</strong>
+                    </div>
+
+                    <div className="family-schedule-details">
+                      <h4>{log.medicineName || log.medicine?.medicineName || "Medicine"}</h4>
+                      <p>{log.dosage || log.medicine?.dosage || "Follow the prescribed dosage"}</p>
+                      {log.takenAt && (
+                        <span className="family-taken-time">
+                          Taken at {formatTime(log.takenAt)}
+                        </span>
+                      )}
+                    </div>
+
+                    <span className={`family-status ${getStatusClass(log.status)}`}>
+                      {displayStatus(log.status)}
+                    </span>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="family-section">
+          <div className="family-section-heading">
+            <div>
+              <span className="family-section-kicker">PREVENTIVE CARE</span>
+              <h2>Vaccination Schedule</h2>
+              <p>Review available, upcoming, and completed vaccinations.</p>
+            </div>
+            <div className="family-heading-icon vaccination-heading-icon">
+              <FaSyringe />
+            </div>
+          </div>
+
+          {nextUpcomingVaccination && (
+            <div className="family-next-vaccination">
+              <div className="family-next-vaccination-icon"><FaSyringe /></div>
+              <div>
+                <span>Next Upcoming Vaccination</span>
+                <h3>{formatValue(nextUpcomingVaccination.vaccineName, "Vaccination")}</h3>
+                <p>
+                  {formatDate(nextUpcomingVaccination.scheduledDate || nextUpcomingVaccination.availableFrom)}
+                  {nextUpcomingVaccination.doseNumber ? ` · Dose ${nextUpcomingVaccination.doseNumber}` : ""}
+                </p>
+              </div>
+            </div>
           )}
 
+          <div className="family-content-card">
+            <div className="family-card-heading">
+              <div>
+                <h3><FaSyringe /> Vaccination Records</h3>
+                <p>Dates and status provided by the vaccination records.</p>
+              </div>
+            </div>
+
+            {vaccinations.length === 0 ? (
+              <div className="family-empty-state">
+                <FaSyringe />
+                <h4>No vaccination records found</h4>
+                <p>
+                  Vaccination details will appear here when records are
+                  available for the mother&apos;s account.
+                </p>
+              </div>
+            ) : (
+              <div className="family-record-list">
+                {vaccinations.map((vaccination, index) => (
+                  <article
+                    className="family-record-item"
+                    key={vaccination.id ?? `vaccination-${index}`}
+                  >
+                    <div className="family-record-top">
+                      <div className="family-record-title-wrap">
+                        <div className="family-record-icon vaccination-record-icon"><FaSyringe /></div>
+                        <div>
+                          <h4>{formatValue(vaccination.vaccineName, "Vaccination")}</h4>
+                          <p>{vaccination.doseNumber ? `Dose ${vaccination.doseNumber}` : "Dose not specified"}</p>
+                        </div>
+                      </div>
+                      <span className={`family-status ${getStatusClass(vaccination.status)}`}>
+                        {displayStatus(vaccination.status)}
+                      </span>
+                    </div>
+
+                    <div className="family-record-grid">
+                      <div><span>Available From</span><strong>{formatDate(vaccination.availableFrom)}</strong></div>
+                      <div><span>Scheduled Date</span><strong>{formatDate(vaccination.scheduledDate)}</strong></div>
+                      <div><span>Taken Date</span><strong>{formatDate(vaccination.takenDate)}</strong></div>
+                    </div>
+
+                    {vaccination.notes && (
+                      <div className="family-record-notes">
+                        <strong>Notes:</strong> {vaccination.notes}
+                      </div>
+                    )}
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
         </section>
-
-
-        {/* ===================================================
-            HEALTH & SUPPORT
-        =================================================== */}
 
         <section className="family-section">
-
-          <div className="family-section-title">
-
-            <div className="section-title-icon">
-              <FaHeart />
-            </div>
-
+          <div className="family-section-heading">
             <div>
-
-              <h3>
-                Health & Support
-              </h3>
-
-              <p>
-                Important areas to support the mother
-              </p>
-
+              <span className="family-section-kicker">CARE PLANNING</span>
+              <h2>Appointments</h2>
+              <p>Follow upcoming visits and previously completed appointments.</p>
             </div>
-
+            <div className="family-heading-icon appointment-heading-icon"><FaCalendarAlt /></div>
           </div>
 
+          <div className="family-highlight-grid family-appointment-summary">
+            <article className="family-highlight-card">
+              <div className="family-highlight-icon"><FaCalendarAlt /></div>
+              <div><span>Upcoming</span><strong>{upcomingAppointments.length}</strong></div>
+            </article>
+            <article className="family-highlight-card">
+              <div className="family-highlight-icon"><FaCheckCircle /></div>
+              <div><span>Completed</span><strong>{completedAppointments.length}</strong></div>
+            </article>
+            <article className="family-highlight-card">
+              <div className="family-highlight-icon"><FaClock /></div>
+              <div>
+                <span>Next Appointment</span>
+                <strong className="family-highlight-small">
+                  {nextUpcomingAppointment
+                    ? formatDate(getAppointmentDate(nextUpcomingAppointment))
+                    : "Not scheduled"}
+                </strong>
+              </div>
+            </article>
+          </div>
+
+          <div className="family-content-card">
+            <div className="family-card-heading">
+              <div>
+                <h3><FaCalendarAlt /> Appointment Records</h3>
+                <p>Appointment information received from the backend.</p>
+              </div>
+            </div>
+
+            {appointments.length === 0 ? (
+              <div className="family-empty-state">
+                <FaCalendarAlt />
+                <h4>No appointments found</h4>
+                <p>Appointment records will appear here when available.</p>
+              </div>
+            ) : (
+              <div className="family-record-list">
+                {appointments.map((appointment, index) => {
+                  const doctorName =
+                    appointment?.doctorName ||
+                    appointment?.doctor?.name ||
+                    appointment?.doctor?.fullName;
+
+                  const hospitalName =
+                    appointment?.hospitalName ||
+                    appointment?.hospital ||
+                    appointment?.clinicName;
+
+                  return (
+                    <article
+                      className="family-record-item"
+                      key={appointment.id ?? `appointment-${index}`}
+                    >
+                      <div className="family-record-top">
+                        <div className="family-record-title-wrap">
+                          <div className="family-record-icon appointment-record-icon"><FaCalendarAlt /></div>
+                          <div>
+                            <h4>{formatValue(appointment.title || appointment.reason || appointment.appointmentType, "Medical Appointment")}</h4>
+                            <p>
+                              {formatDate(getAppointmentDate(appointment))}
+                              {" · "}
+                              {formatTime(getAppointmentTime(appointment))}
+                            </p>
+                          </div>
+                        </div>
+                        <span className={`family-status ${getStatusClass(getAppointmentStatus(appointment))}`}>
+                          {displayStatus(getAppointmentStatus(appointment))}
+                        </span>
+                      </div>
+
+                      <div className="family-appointment-details">
+                        {doctorName && <span><FaUserMd /> {doctorName}</span>}
+                        {hospitalName && (
+                          <span>
+                            <FaHospital />{" "}
+                            {typeof hospitalName === "string"
+                              ? hospitalName
+                              : hospitalName?.name || "Hospital"}
+                          </span>
+                        )}
+                        {appointment.notes && <span><FaClipboardList /> {appointment.notes}</span>}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="family-section">
+          <div className="family-section-heading">
+            <div>
+              <span className="family-section-kicker">WELLNESS</span>
+              <h2>Health &amp; Support</h2>
+              <p>A quick overview to help family members stay informed.</p>
+            </div>
+            <div className="family-heading-icon health-heading-icon"><FaHeart /></div>
+          </div>
 
           <div className="family-support-grid">
+            <article className="family-support-card">
+              <div className="family-support-icon"><FaHeart /></div>
+              <h3>Health Score</h3>
+              <p className="family-support-value">
+                {healthScore !== null && healthScore !== undefined && healthScore !== ""
+                  ? `${healthScore}${typeof healthScore === "number" ? "/100" : ""}`
+                  : "Not available"}
+              </p>
+              <p>
+                {healthScore !== null && healthScore !== undefined
+                  ? "Based on the score provided by the system."
+                  : "A health score has not been provided by the backend."}
+              </p>
+            </article>
 
+            <article className="family-support-card">
+              <div className="family-support-icon"><FaCalendarAlt /></div>
+              <h3>Expected Due Date</h3>
+              <p className="family-support-value">{formatDate(dueDate)}</p>
+              <p>Keep track of important pregnancy milestones.</p>
+            </article>
 
-            {/* HEALTH */}
-
-            <div className="family-support-card">
-
-              <div className="support-icon">
-                <FaHeart />
-              </div>
-
-              <div>
-
-                <h4>
-                  Health Status
-                </h4>
-
-                <p>
-                  Monitor the mother's general
-                  health and wellbeing.
-                </p>
-
-              </div>
-
-            </div>
-
-
-            {/* MEDICINES */}
-
-            <div className="family-support-card">
-
-              <div className="support-icon">
-                <FaPills />
-              </div>
-
-              <div>
-
-                <h4>
-                  Medicines
-                </h4>
-
-                <p>
-                  Important prescribed medicines
-                  and medication reminders.
-                </p>
-
-              </div>
-
-            </div>
-
-
-            {/* REMINDERS */}
-
-            <div className="family-support-card">
-
-              <div className="support-icon">
-                <FaBell />
-              </div>
-
-              <div>
-
-                <h4>
-                  Reminders
-                </h4>
-
-                <p>
-                  Stay informed about important
-                  pregnancy reminders.
-                </p>
-
-              </div>
-
-            </div>
-
+            <article className="family-support-card">
+              <div className="family-support-icon"><FaBell /></div>
+              <h3>Stay Updated</h3>
+              <p className="family-support-value">Family Care</p>
+              <p>
+                Review medicine schedules, appointments, and vaccination
+                records regularly.
+              </p>
+            </article>
           </div>
-
         </section>
 
-
-        {/* ===================================================
-            SECURITY
-        =================================================== */}
-
-        <section className="family-information-box">
-
-          <FaShieldAlt />
-
+        <section className="family-security-note">
+          <div className="family-security-icon"><FaShieldAlt /></div>
           <div>
-
-            <h4>
-              Your Family Connection is Secure
-            </h4>
-
+            <h3>Privacy &amp; Security</h3>
             <p>
-              You are connected to the mother's
-              profile through verified email and
-              OTP verification. Her health information
-              should only be accessed for family
-              support and care.
+              This dashboard displays information returned for the linked
+              mother&apos;s account. Keep login details private and log out
+              when using a shared device.
             </p>
-
           </div>
-
         </section>
 
-
-        {/* ===================================================
-            BACK BUTTON
-        =================================================== */}
-
-        <button
-          className="family-back-btn"
-          onClick={() =>
-            navigate(-1)
-          }
-        >
-
-          <FaArrowLeft />
-
-          Back
-
-        </button>
-
+        <footer className="family-dashboard-footer">
+          <p><FaHeart /> NURTURE AI — Supporting mothers and families</p>
+          <span>Pregnancy wellness and family support</span>
+        </footer>
       </main>
-
     </div>
-
   );
-}
-
+};
 
 export default FamilyDashboard;

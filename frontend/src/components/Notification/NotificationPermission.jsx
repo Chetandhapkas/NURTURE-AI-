@@ -7,6 +7,7 @@ import {
   VAPID_KEY
 } from "../../firebase/firebase.js";
 
+import "./NotificationPermission.css";
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL || "/api";
 

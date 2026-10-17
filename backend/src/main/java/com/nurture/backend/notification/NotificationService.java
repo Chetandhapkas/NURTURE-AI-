@@ -26,6 +26,11 @@ public class NotificationService {
         this.historyRepository = historyRepository;
     }
 
+    /*
+     * =====================================================
+     * SEND NOTIFICATION
+     * =====================================================
+     */
     @Transactional
     public boolean sendNotification(
             Long userId,
@@ -35,6 +40,36 @@ public class NotificationService {
             String body
     ) {
 
+        System.out.println();
+        System.out.println(
+                "=========================================="
+        );
+
+        System.out.println(
+                "Notification Service Started"
+        );
+
+        System.out.println(
+                "User ID       : " + userId
+        );
+
+        System.out.println(
+                "Type          : " + type
+        );
+
+        System.out.println(
+                "Reference ID  : " + referenceId
+        );
+
+        System.out.println(
+                "Title         : " + title
+        );
+
+        /*
+         * =====================================================
+         * CHECK DUPLICATE
+         * =====================================================
+         */
         if (historyRepository
                 .existsByUserIdAndNotificationTypeAndReferenceId(
                         userId,
@@ -43,23 +78,47 @@ public class NotificationService {
                 )) {
 
             System.out.println(
-                    "Notification already sent: "
-                            + type
-                            + " / "
+                    "Notification already sent."
+            );
+
+            System.out.println(
+                    "Type: " + type
+                            + " | Reference ID: "
                             + referenceId
+            );
+
+            System.out.println(
+                    "=========================================="
             );
 
             return false;
         }
 
+        /*
+         * =====================================================
+         * FIND ACTIVE FCM TOKENS
+         * =====================================================
+         */
         List<NotificationToken> tokens =
                 tokenRepository.findByUserIdAndActiveTrue(userId);
+
+        System.out.println(
+                "Active FCM tokens found: "
+                        + tokens.size()
+        );
 
         if (tokens.isEmpty()) {
 
             System.out.println(
-                    "No active notification token found for user: "
-                            + userId
+                    "NO ACTIVE FCM TOKEN FOUND"
+            );
+
+            System.out.println(
+                    "User ID: " + userId
+            );
+
+            System.out.println(
+                    "=========================================="
             );
 
             return false;
@@ -67,9 +126,19 @@ public class NotificationService {
 
         boolean sentSuccessfully = false;
 
+        /*
+         * =====================================================
+         * SEND TO EVERY ACTIVE TOKEN
+         * =====================================================
+         */
         for (NotificationToken token : tokens) {
 
             try {
+
+                System.out.println(
+                        "Sending notification to token ID: "
+                                + token.getId()
+                );
 
                 Notification notification =
                         Notification.builder()
@@ -81,9 +150,14 @@ public class NotificationService {
                         Message.builder()
                                 .setToken(token.getToken())
                                 .setNotification(notification)
-                                .putData("type", type)
-                                .putData("referenceId",
-                                        String.valueOf(referenceId))
+                                .putData(
+                                        "type",
+                                        type
+                                )
+                                .putData(
+                                        "referenceId",
+                                        String.valueOf(referenceId)
+                                )
                                 .build();
 
                 String response =
@@ -92,55 +166,118 @@ public class NotificationService {
                                 .send(message);
 
                 System.out.println(
-                        "Notification sent successfully: "
+                        "Firebase response: "
                                 + response
+                );
+
+                System.out.println(
+                        "Notification sent successfully."
                 );
 
                 sentSuccessfully = true;
 
             } catch (Exception e) {
 
-                System.out.println(
-                        "Failed to send notification to token: "
+                System.err.println(
+                        "FAILED TO SEND NOTIFICATION"
+                );
+
+                System.err.println(
+                        "Token ID: "
                                 + token.getId()
                 );
 
-                System.out.println(
+                System.err.println(
                         "Reason: "
                                 + e.getMessage()
                 );
 
                 /*
-                 * If Firebase says that the token is invalid,
-                 * deactivate it so we don't keep trying.
+                 * =================================================
+                 * INVALID TOKEN
+                 * =================================================
                  */
-                String message = e.getMessage();
+                String message =
+                        e.getMessage();
 
                 if (message != null &&
-                        (message.contains("registration-token-not-registered")
-                                || message.contains("UNREGISTERED")
-                                || message.contains("INVALID_ARGUMENT"))) {
+                        (
+                                message.contains(
+                                        "registration-token-not-registered"
+                                )
+                                        ||
+                                        message.contains(
+                                                "UNREGISTERED"
+                                        )
+                                        ||
+                                        message.contains(
+                                                "INVALID_ARGUMENT"
+                                        )
+                        )) {
+
+                    System.out.println(
+                            "Invalid FCM token detected."
+                    );
+
+                    System.out.println(
+                            "Deactivating token ID: "
+                                    + token.getId()
+                    );
 
                     token.setActive(false);
+
                     tokenRepository.save(token);
                 }
             }
         }
 
+        /*
+         * =====================================================
+         * SAVE NOTIFICATION HISTORY
+         * =====================================================
+         */
         if (sentSuccessfully) {
 
             NotificationHistory history =
                     new NotificationHistory();
 
             history.setUserId(userId);
-            history.setNotificationType(type);
-            history.setReferenceId(referenceId);
 
-            historyRepository.save(history);
+            history.setNotificationType(
+                    type
+            );
+
+            history.setReferenceId(
+                    referenceId
+            );
+
+            historyRepository.save(
+                    history
+            );
+
+            System.out.println(
+                    "Notification history saved."
+            );
+
+            System.out.println(
+                    "Notification process SUCCESS."
+            );
+
+            System.out.println(
+                    "=========================================="
+            );
 
             return true;
         }
 
+        System.out.println(
+                "Notification process FAILED."
+        );
+
+        System.out.println(
+                "=========================================="
+        );
+
         return false;
     }
-}
+}   

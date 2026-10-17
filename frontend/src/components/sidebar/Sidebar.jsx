@@ -271,24 +271,22 @@ function Sidebar({ isOpen, setIsOpen }) {
           </li>
 
 
-          {/* Family Dashboard */}
+          {/* My Family - Mother */}
 
-          <li
-            className={
-              location.pathname === "/family-dashboard"
-                ? "active"
-                : ""
-            }
-            onClick={() =>
-              handleNavigation("/family-dashboard")
-            }
-          >
-            <FaUsers className="icon" />
+            <li
+              className={
+                  location.pathname === "/my-family"
+                  ? "active"
+                  : ""
+              }
+              onClick={() => handleNavigation("/my-family")}
+                >
+                <FaUsers className="icon" />
 
-            <span>
-              Family Dashboard
-            </span>
-          </li>
+                <span>
+                     My Family
+                </span>
+            </li>
 
 
           {/* Settings */}
