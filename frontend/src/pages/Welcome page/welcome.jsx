@@ -15,9 +15,11 @@ function Welcome() {
     onClick={() => navigate("/")}
   >
     <div className="brand-logo">
-      🌸
-    </div>
-
+  <img
+    src="\Image\nurturelogo-removebg-preview.png"
+    alt="Nurture AI Logo"
+  />
+</div>
     <div className="brand-name-wrapper">
       <span className="brand-name">Nurture</span>
       <span className="brand-ai">AI</span>
@@ -603,7 +605,7 @@ One platform that supports you from planning your pregnancy through delivery and
 
         <div className="doctor-info">
 
-          <h3>Dr. Priya Sharma</h3>
+          <h3>Dr. Rajshri Raut</h3>
 
           <p className="doctor-degree">
             MBBS, MD
