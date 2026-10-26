@@ -1,3 +1,4 @@
+
 package com.nurture.backend.notification;
 
 import com.google.auth.oauth2.GoogleCredentials;
@@ -6,8 +7,9 @@ import com.google.firebase.FirebaseOptions;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.FileInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @Configuration
 public class FirebaseConfig {
@@ -19,18 +21,25 @@ public class FirebaseConfig {
             return FirebaseApp.getInstance();
         }
 
-        String credentialsPath =
-                "C:\\Users\\lenovo\\OneDrive\\Desktop\\NURTURE AI\\firebase-service-account.json";
+        String credentialsJson =
+                System.getenv("FIREBASE_SERVICE_ACCOUNT_JSON");
 
-        FileInputStream serviceAccount =
-                new FileInputStream(credentialsPath);
+        if (credentialsJson == null || credentialsJson.isBlank()) {
+            throw new IllegalStateException(
+                    "FIREBASE_SERVICE_ACCOUNT_JSON is not configured"
+            );
+        }
 
-        FirebaseOptions options = FirebaseOptions.builder()
-                .setCredentials(
-                        GoogleCredentials.fromStream(serviceAccount)
-                )
-                .build();
+        try (ByteArrayInputStream serviceAccount =
+                     new ByteArrayInputStream(
+                             credentialsJson.getBytes(StandardCharsets.UTF_8))) {
 
-        return FirebaseApp.initializeApp(options);
+            FirebaseOptions options = FirebaseOptions.builder()
+                    .setCredentials(
+                            GoogleCredentials.fromStream(serviceAccount))
+                    .build();
+
+            return FirebaseApp.initializeApp(options);
+        }
     }
 }
