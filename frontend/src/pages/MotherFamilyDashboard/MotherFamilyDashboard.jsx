@@ -14,8 +14,8 @@ export default function MotherFamilyDashboard() {
 
   const loadFamilyMembers = useCallback(async () => {
     if (!patientUserId) {
-      setError("Your session was not found. Please log in again.");
       setMembers([]);
+      setError("Your session was not found. Please log in again.");
       setLoading(false);
       return;
     }
@@ -25,20 +25,29 @@ export default function MotherFamilyDashboard() {
 
     try {
       const response = await fetch(
-        `${API_BASE}/family/members?patientUserId=${encodeURIComponent(patientUserId)}`
+        `${API_BASE}/family/members?patientUserId=${encodeURIComponent(
+          patientUserId
+        )}`
       );
 
       if (!response.ok) {
-        throw new Error(`Request failed (${response.status})`);
+        throw new Error(`Unable to load family members (${response.status}).`);
       }
 
       const data = await response.json();
-      setMembers(Array.isArray(data) ? data : []);
+
+      if (!Array.isArray(data)) {
+        throw new Error("The server returned an unexpected response.");
+      }
+
+      setMembers(data);
     } catch (err) {
-      setError(
-        err.message || "Unable to load your connected family members."
-      );
       setMembers([]);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to load your connected family members."
+      );
     } finally {
       setLoading(false);
     }
@@ -49,13 +58,15 @@ export default function MotherFamilyDashboard() {
   }, [loadFamilyMembers]);
 
   const getInitials = (name) => {
-    if (!name) return "FM";
+    if (typeof name !== "string" || !name.trim()) {
+      return "FM";
+    }
 
     return name
       .trim()
       .split(/\s+/)
       .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase() || "")
+      .map((part) => part.charAt(0).toUpperCase())
       .join("");
   };
 
@@ -64,168 +75,209 @@ export default function MotherFamilyDashboard() {
       <Sidebar />
 
       <main className="family-dashboard-page">
-        <header className="family-dashboard-header">
-          <div>
-            <span className="family-dashboard-eyebrow">
-              NURTURE AI · FAMILY SUPPORT
-            </span>
-            <h1>Family Dashboard</h1>
-            <p>
-              View the family members connected to your pregnancy wellness
-              account and their contact details.
-            </p>
-          </div>
+        <div className="family-dashboard-content">
+          <header className="family-dashboard-header">
+            <div className="family-dashboard-header-text">
+              <span className="family-dashboard-eyebrow">
+                NURTURE AI · FAMILY SUPPORT
+              </span>
 
-          <div className="family-dashboard-header-icon" aria-hidden="true">
-            ♡
-          </div>
-        </header>
+              <h1>Family Dashboard</h1>
 
-        <section className="family-dashboard-summary">
-          <div className="family-summary-icon" aria-hidden="true">
-            ♧
-          </div>
-
-          <div>
-            <span>Connected family members</span>
-            <strong>{loading ? "—" : members.length}</strong>
-            <p>Members linked to your account</p>
-          </div>
-
-          <button
-            type="button"
-            className="family-refresh-button"
-            onClick={loadFamilyMembers}
-            disabled={loading}
-          >
-            {loading ? "Loading..." : "↻ Refresh"}
-          </button>
-        </section>
-
-        {error && (
-          <div className="family-dashboard-error" role="alert">
-            <span>{error}</span>
-            <button type="button" onClick={() => setError("")}>
-              ×
-            </button>
-          </div>
-        )}
-
-        <section className="family-members-section">
-          <div className="family-members-heading">
-            <div>
-              <h2>Your connected family</h2>
               <p>
-                Contact information retrieved from your account records.
+                View the family members connected to your pregnancy wellness
+                account and their contact details.
               </p>
             </div>
-          </div>
 
-          {loading ? (
-            <div className="family-empty-state">
-              <div className="family-loading-spinner" />
-              <strong>Loading family members...</strong>
-              <p>Please wait while we retrieve your information.</p>
+            <div
+              className="family-dashboard-header-icon"
+              aria-hidden="true"
+            >
+              ♡
             </div>
-          ) : error ? (
-            <div className="family-empty-state">
-              <div className="family-empty-icon">!</div>
-              <strong>Family information unavailable</strong>
-              <p>Check your connection and try refreshing.</p>
+          </header>
+
+          <section
+            className="family-dashboard-summary"
+            aria-label="Family member summary"
+          >
+            <div className="family-summary-icon" aria-hidden="true">
+              ♧
+            </div>
+
+            <div className="family-summary-info">
+              <span>Connected family members</span>
+              <strong>{loading ? "—" : members.length}</strong>
+              <p>Members linked to your account</p>
+            </div>
+
+            <button
+              type="button"
+              className="family-refresh-button"
+              onClick={loadFamilyMembers}
+              disabled={loading}
+            >
+              <span aria-hidden="true">↻</span>
+              {loading ? "Loading..." : "Refresh"}
+            </button>
+          </section>
+
+          {error && (
+            <div className="family-dashboard-error" role="alert">
+              <span>{error}</span>
+
               <button
-                className="family-retry-button"
                 type="button"
-                onClick={loadFamilyMembers}
+                className="family-error-dismiss"
+                onClick={() => setError("")}
+                aria-label="Dismiss error"
               >
-                Try again
+                ×
               </button>
             </div>
-          ) : members.length === 0 ? (
-            <div className="family-empty-state">
-              <div className="family-empty-icon">♡</div>
-              <strong>No family members connected yet</strong>
-              <p>
-                Family member details will appear here once they are linked
-                to your account.
-              </p>
-            </div>
-          ) : (
-            <div className="family-members-grid">
-              {members.map((member) => (
-                <article
-                  className="family-member-card"
-                  key={member.familyMemberId}
-                >
-                  <div className="family-member-card-top">
-                    <div className="family-member-avatar">
-                      {getInitials(member.memberName)}
-                    </div>
-
-                    <span className="family-connected-badge">
-                      Connected
-                    </span>
-                  </div>
-
-                  <h3>{member.memberName || "Family member"}</h3>
-
-                  <span className="family-member-relationship">
-                    {member.relationship || "Relationship not specified"}
-                  </span>
-
-                  <div className="family-member-divider" />
-
-                  <div className="family-member-details">
-                    <div className="family-detail-row">
-                      <span className="family-detail-icon" aria-hidden="true">
-                        ♙
-                      </span>
-                      <div>
-                        <small>Age</small>
-                        <strong>
-                          {member.age != null
-                            ? `${member.age} years`
-                            : "Not provided"}
-                        </strong>
-                      </div>
-                    </div>
-
-                    <div className="family-detail-row">
-                      <span className="family-detail-icon" aria-hidden="true">
-                        ☎
-                      </span>
-                      <div>
-                        <small>Phone number</small>
-                        {member.phoneNumber ? (
-                          <a href={`tel:${member.phoneNumber}`}>
-                            {member.phoneNumber}
-                          </a>
-                        ) : (
-                          <strong>Not provided</strong>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="family-detail-row">
-                      <span className="family-detail-icon" aria-hidden="true">
-                        ✉
-                      </span>
-                      <div>
-                        <small>Email address</small>
-                        {member.email ? (
-                          <a href={`mailto:${member.email}`}>
-                            {member.email}
-                          </a>
-                        ) : (
-                          <strong>Not available</strong>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
           )}
-        </section>
+
+          <section className="family-members-section">
+            <div className="family-members-heading">
+              <div>
+                <h2>Your connected family</h2>
+                <p>
+                  Contact information retrieved from your account records.
+                </p>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="family-empty-state" aria-live="polite">
+                <div className="family-loading-spinner" />
+                <strong>Loading family members...</strong>
+                <p>Please wait while we retrieve your information.</p>
+              </div>
+            ) : error ? (
+              <div className="family-empty-state">
+                <div className="family-empty-icon" aria-hidden="true">
+                  !
+                </div>
+
+                <strong>Family information unavailable</strong>
+                <p>Check your connection and try refreshing.</p>
+
+                <button
+                  className="family-retry-button"
+                  type="button"
+                  onClick={loadFamilyMembers}
+                >
+                  Try again
+                </button>
+              </div>
+            ) : members.length === 0 ? (
+              <div className="family-empty-state">
+                <div className="family-empty-icon" aria-hidden="true">
+                  ♡
+                </div>
+
+                <strong>No family members connected yet</strong>
+                <p>
+                  Family member details will appear here once they are linked
+                  to your account.
+                </p>
+              </div>
+            ) : (
+              <div className="family-members-grid">
+                {members.map((member, index) => (
+                  <article
+                    className="family-member-card"
+                    key={
+                      member.familyMemberId ??
+                      `${member.memberName ?? "member"}-${index}`
+                    }
+                  >
+                    <div className="family-member-card-top">
+                      <div className="family-member-avatar">
+                        {getInitials(member.memberName)}
+                      </div>
+
+                      <span className="family-connected-badge">
+                        Connected
+                      </span>
+                    </div>
+
+                    <h3>{member.memberName || "Family member"}</h3>
+
+                    <span className="family-member-relationship">
+                      {member.relationship || "Relationship not specified"}
+                    </span>
+
+                    <div className="family-member-divider" />
+
+                    <div className="family-member-details">
+                      <div className="family-detail-row">
+                        <span
+                          className="family-detail-icon"
+                          aria-hidden="true"
+                        >
+                          ♙
+                        </span>
+
+                        <div>
+                          <small>Age</small>
+                          <strong>
+                            {member.age != null
+                              ? `${member.age} years`
+                              : "Not provided"}
+                          </strong>
+                        </div>
+                      </div>
+
+                      <div className="family-detail-row">
+                        <span
+                          className="family-detail-icon"
+                          aria-hidden="true"
+                        >
+                          ☎
+                        </span>
+
+                        <div>
+                          <small>Phone number</small>
+
+                          {member.phoneNumber ? (
+                            <a href={`tel:${member.phoneNumber}`}>
+                              {member.phoneNumber}
+                            </a>
+                          ) : (
+                            <strong>Not provided</strong>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="family-detail-row">
+                        <span
+                          className="family-detail-icon"
+                          aria-hidden="true"
+                        >
+                          ✉
+                        </span>
+
+                        <div>
+                          <small>Email address</small>
+
+                          {member.email ? (
+                            <a href={`mailto:${member.email}`}>
+                              {member.email}
+                            </a>
+                          ) : (
+                            <strong>Not available</strong>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
       </main>
     </div>
   );

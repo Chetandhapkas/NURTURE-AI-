@@ -1,7 +1,7 @@
+
 package com.nurture.backend.entity;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -27,6 +27,15 @@ public class NotificationHistory {
 
     @Column(name = "reference_id", nullable = false)
     private Long referenceId;
+
+    @Column(name = "title", length = 150)
+    private String title;
+
+    @Column(name = "body", length = 1000)
+    private String body;
+
+    @Column(name = "is_read", nullable = false)
+    private boolean isRead = false;
 
     @Column(name = "sent_at", nullable = false)
     private LocalDateTime sentAt;
@@ -71,6 +80,30 @@ public class NotificationHistory {
 
     public void setReferenceId(Long referenceId) {
         this.referenceId = referenceId;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
+    }
+
+    public boolean getIsRead() {
+        return isRead;
+    }
+
+    public void setIsRead(boolean isRead) {
+        this.isRead = isRead;
     }
 
     public LocalDateTime getSentAt() {

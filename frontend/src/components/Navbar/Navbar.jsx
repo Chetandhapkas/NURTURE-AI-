@@ -1,301 +1,445 @@
-import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   FaBars,
   FaBell,
-  FaSearch,
   FaUserCircle,
+  FaSignOutAlt,
+  FaChevronDown,
+  FaTimes,
+  FaUserMd,
+  FaAmbulance,
 } from "react-icons/fa";
 
 import Sidebar from "../sidebar/Sidebar";
-
 import "./Navbar.css";
+
+const pageTitles = {
+  "/dashboard": "Dashboard",
+  "/ai-assistant": "AI Assistant",
+  "/profile": "Pregnancy Profile",
+  "/pregnancy-profile": "Pregnancy Profile",
+  "/nutrition": "Nutrition",
+  "/medicine": "Medicine",
+  "/appointment": "Appointments",
+  "/appointments": "Appointments",
+  "/report": "Reports",
+  "/reports": "Reports",
+  "/my-family": "Family Dashboard",
+  "/family-dashboard": "Family Dashboard",
+  "/settings": "Settings",
+  "/doctor": "Find a Doctor",
+  "/emergency": "Emergency",
+};
 
 function Navbar() {
   const location = useLocation();
-
-  // =========================================================
-  // SIDEBAR
-  // =========================================================
+  const navigate = useNavigate();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
-  // =========================================================
-  // USER DATA
-  // =========================================================
+  const [notifications, setNotifications] = useState([]);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
+  const [notificationError, setNotificationError] = useState("");
 
-  const [user, setUser] = useState({
-    userId: "",
-    name: "User",
-    email: "",
-    role: "",
-  });
+  const notificationButtonRef = useRef(null);
+  const notificationPanelRef = useRef(null);
+  const profileButtonRef = useRef(null);
+  const profileDropdownRef = useRef(null);
 
-  // =========================================================
-  // LOAD LOGGED-IN USER
-  // =========================================================
+  const userId = localStorage.getItem("userId");
+  const fullName = localStorage.getItem("fullName") || "User";
+  const role = localStorage.getItem("role") || "Mother";
+
+  const formattedRole =
+    role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+
+  const pageTitle = pageTitles[location.pathname] || "NURTURE AI";
+
+  const unreadCount = notifications.filter(
+    (item) => item.read === false
+  ).length;
 
   useEffect(() => {
-    const loadUser = () => {
-      const userId =
-        localStorage.getItem("userId") || "";
+    function handleOutsideClick(event) {
+      const target = event.target;
 
-      const fullName =
-        localStorage.getItem("fullName") || "";
+      if (
+        notificationButtonRef.current?.contains(target) ||
+        notificationPanelRef.current?.contains(target)
+      ) {
+        return;
+      }
 
-      const email =
-        localStorage.getItem("email") || "";
+      setIsNotificationsOpen(false);
 
-      const role =
-        localStorage.getItem("role") || "";
+      if (
+        profileButtonRef.current?.contains(target) ||
+        profileDropdownRef.current?.contains(target)
+      ) {
+        return;
+      }
 
-      console.log("========== NAVBAR USER ==========");
-      console.log("User ID:", userId);
-      console.log("Full Name:", fullName);
-      console.log("Email:", email);
-      console.log("Role:", role);
+      setIsProfileOpen(false);
+    }
 
-      setUser({
-        userId,
-        name: fullName || "User",
-        email,
-        role,
-      });
-    };
+    function handleEscape(event) {
+      if (event.key === "Escape") {
+        setIsProfileOpen(false);
+        setIsNotificationsOpen(false);
+      }
+    }
 
-    loadUser();
-
-    // Update navbar if another tab/window changes localStorage
-    window.addEventListener("storage", loadUser);
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleEscape);
 
     return () => {
-      window.removeEventListener(
-        "storage",
-        loadUser
-      );
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleEscape);
     };
-  }, [location.pathname]);
-
-  // =========================================================
-  // CLOSE SIDEBAR WHEN PAGE CHANGES
-  // =========================================================
+  }, []);
 
   useEffect(() => {
-    setIsSidebarOpen(false);
-  }, [location.pathname]);
+    if (!isNotificationsOpen) return undefined;
 
-  // =========================================================
-  // NAVBAR TITLE
-  // =========================================================
-
-  const getNavbarTitle = () => {
-    const path = location.pathname;
-
-    if (
-      path === "/appointment" ||
-      path === "/appointments" ||
-      path === "/appointment-history" ||
-      path.startsWith("/appointment/")
-    ) {
-      return "Appointments";
+    if (!userId) {
+      setNotifications([]);
+      setNotificationError("Please log in to view notifications.");
+      return undefined;
     }
 
-    if (path === "/ai-assistant") {
-      return "AI Assistant";
-    }
+    const controller = new AbortController();
 
-    if (path === "/pregnancy-profile") {
-      return "Pregnancy Profile";
-    }
+    async function loadNotifications() {
+      setIsLoadingNotifications(true);
+      setNotificationError("");
 
-    if (path === "/nutrition") {
-      return "Nutrition";
-    }
-
-    if (path === "/medicine") {
-      return "Medicine";
-    }
-
-    if (path === "/reports") {
-      return "Reports";
-    }
-
-    if (path === "/family-dashboard") {
-      return "Family Dashboard";
-    }
-
-    if (path === "/settings") {
-      return "Settings";
-    }
-
-    if (path === "/personal-info") {
-      return "Personal Information";
-    }
-
-    if (path === "/pregnancy-details") {
-      return "Pregnancy Details";
-    }
-
-    if (path === "/dashboard") {
-      return "Dashboard";
-    }
-
-    return "Dashboard";
-  };
-
-  // =========================================================
-  // FORMAT ROLE
-  // =========================================================
-
-  const formatRole = (role) => {
-    if (!role) {
-      return "";
-    }
-
-    return String(role)
-      .toLowerCase()
-      .split("_")
-      .map((word) => {
-        return (
-          word.charAt(0).toUpperCase() +
-          word.slice(1)
+      try {
+        const response = await fetch(
+          `/api/notifications/history/${encodeURIComponent(userId)}`,
+          {
+            headers: { Accept: "application/json" },
+            signal: controller.signal,
+          }
         );
-      })
-      .join(" ");
-  };
 
-  // =========================================================
-  // TOGGLE SIDEBAR
-  // =========================================================
+        if (!response.ok) {
+          throw new Error(
+            response.status === 404
+              ? "Notification history API was not found."
+              : "Unable to load notifications."
+          );
+        }
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen((previous) => !previous);
-  };
+        const data = await response.json();
 
-  // =========================================================
-  // RETURN
-  // =========================================================
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data.content)
+            ? data.content
+            : [];
+
+        setNotifications(
+          list.map((item) => ({
+            ...item,
+            read: item.read ?? item.isRead ?? item.is_read ?? true,
+          }))
+        );
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          setNotificationError(
+            error.message || "Unable to load notifications."
+          );
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoadingNotifications(false);
+        }
+      }
+    }
+
+    loadNotifications();
+
+    return () => controller.abort();
+  }, [isNotificationsOpen, userId]);
+
+  function toggleNotifications() {
+    setIsNotificationsOpen((previous) => !previous);
+    setIsProfileOpen(false);
+  }
+
+  function toggleProfile() {
+    setIsProfileOpen((previous) => !previous);
+    setIsNotificationsOpen(false);
+  }
+
+  function openDoctorPage() {
+    setIsNotificationsOpen(false);
+    setIsProfileOpen(false);
+    navigate("/doctor");
+  }
+
+  function openEmergencyPage() {
+    setIsNotificationsOpen(false);
+    setIsProfileOpen(false);
+    navigate("/emergency");
+  }
+
+  function handleLogout() {
+    localStorage.clear();
+    setIsProfileOpen(false);
+    setIsNotificationsOpen(false);
+    navigate("/login", { replace: true });
+  }
+
+  function formatNotificationDate(value) {
+    if (!value) return "";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return "";
+
+    return date.toLocaleString("en-IN", {
+      day: "numeric",
+      month: "short",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+
+  const notificationMenu =
+    isNotificationsOpen && typeof document !== "undefined"
+      ? createPortal(
+          <div
+            className="navbar-notification-panel navbar-floating-menu"
+            ref={notificationPanelRef}
+            role="dialog"
+            aria-label="Notifications"
+          >
+            <div className="navbar-panel-header">
+              <div>
+                <h3>Notifications</h3>
+                <p>
+                  {unreadCount > 0
+                    ? `${unreadCount} unread notification${
+                        unreadCount === 1 ? "" : "s"
+                      }`
+                    : "You're all caught up"}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="navbar-panel-close"
+                onClick={() => setIsNotificationsOpen(false)}
+                aria-label="Close notifications"
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            <div className="navbar-notification-list">
+              {isLoadingNotifications ? (
+                <div className="navbar-notification-state">
+                  Loading notifications...
+                </div>
+              ) : notificationError ? (
+                <div className="navbar-notification-state navbar-error">
+                  {notificationError}
+                </div>
+              ) : notifications.length === 0 ? (
+                <div className="navbar-notification-state">
+                  <FaBell className="navbar-empty-bell" />
+                  <p>No notifications yet</p>
+                  <span>
+                    Medicine and appointment reminders will appear here
+                    when they are saved by the backend.
+                  </span>
+                </div>
+              ) : (
+                notifications.map((item, index) => (
+                  <div
+                    className={`navbar-notification-item ${
+                      !item.read ? "unread" : ""
+                    }`}
+                    key={item.id ?? `notification-${index}`}
+                  >
+                    <span className="navbar-notification-dot" />
+
+                    <div className="navbar-notification-content">
+                      <h4>
+                        {item.title ||
+                          item.notificationType ||
+                          item.notification_type ||
+                          "Notification"}
+                      </h4>
+
+                      <p>
+                        {item.body ||
+                          item.message ||
+                          "You have a new notification."}
+                      </p>
+
+                      <span className="navbar-notification-date">
+                        {formatNotificationDate(
+                          item.sentAt ||
+                            item.sent_at ||
+                            item.createdAt
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>,
+          document.body
+        )
+      : null;
+
+  const profileMenu =
+    isProfileOpen && typeof document !== "undefined"
+      ? createPortal(
+          <div
+            className="navbar-profile-dropdown navbar-floating-menu"
+            ref={profileDropdownRef}
+            role="menu"
+            aria-label="Profile menu"
+          >
+            <div className="navbar-dropdown-user">
+              <FaUserCircle />
+
+              <div>
+                <strong>{fullName}</strong>
+                <span>{formattedRole}</span>
+              </div>
+            </div>
+
+            <div className="navbar-dropdown-divider" />
+
+            <button
+              type="button"
+              className="navbar-logout-btn"
+              onClick={handleLogout}
+              role="menuitem"
+            >
+              <FaSignOutAlt />
+              <span>Logout</span>
+            </button>
+          </div>,
+          document.body
+        )
+      : null;
 
   return (
     <>
-      {/* =====================================================
-          NAVBAR
-      ===================================================== */}
-
       <header className="navbar">
-
-        {/* ===================================================
-            LEFT
-        =================================================== */}
-
         <div className="navbar-left">
-
-          {/* HAMBURGER */}
-
           <button
             type="button"
-            className="hamburger-btn"
-            onClick={toggleSidebar}
-            aria-label={
-              isSidebarOpen
-                ? "Close Sidebar"
-                : "Open Sidebar"
-            }
+            className="navbar-menu-btn"
+            onClick={() => setIsSidebarOpen((previous) => !previous)}
+            aria-label="Toggle sidebar"
             aria-expanded={isSidebarOpen}
           >
             <FaBars />
           </button>
 
-          {/* PAGE TITLE */}
-
-          <h2>
-            {getNavbarTitle()}
-          </h2>
-
+          <h1 className="navbar-page-title">{pageTitle}</h1>
         </div>
-
-
-        {/* ===================================================
-            SEARCH
-        =================================================== */}
-
-        <div className="navbar-search">
-
-          <FaSearch
-            className="search-icon"
-          />
-
-          <input
-            type="search"
-            placeholder="Search..."
-            aria-label="Search"
-          />
-
-        </div>
-
-
-        {/* ===================================================
-            RIGHT
-        =================================================== */}
 
         <div className="navbar-right">
-
-          {/* =================================================
-              NOTIFICATION
-          ================================================= */}
-
+          {/* Consult a Doctor */}
           <button
             type="button"
-            className="notification"
-            aria-label="Notifications"
+            className={`navbar-doctor-consult-btn ${
+              location.pathname === "/doctor" ? "active" : ""
+            }`}
+            onClick={openDoctorPage}
+            aria-label="Consult a doctor"
+            title="Consult a Doctor"
           >
-            <FaBell />
+            <span className="navbar-doctor-icon-wrap">
+              <FaUserMd />
+            </span>
 
-            <span className="badge">
-              3
+            <span className="navbar-doctor-label">
+              Consult a Doctor
             </span>
           </button>
 
+          {/* Emergency */}
+          <button
+            type="button"
+            className={`navbar-emergency-btn ${
+              location.pathname === "/emergency" ? "active" : ""
+            }`}
+            onClick={openEmergencyPage}
+            aria-label="Open emergency contacts"
+            title="Emergency"
+          >
+            <span className="navbar-emergency-icon-wrap">
+              <FaAmbulance />
+            </span>
 
-          {/* =================================================
-              PROFILE
-          ================================================= */}
+            <span className="navbar-emergency-label">
+              Emergency
+            </span>
+          </button>
 
-          <div className="profile">
+          {/* Notifications */}
+          <button
+            ref={notificationButtonRef}
+            type="button"
+            className={`navbar-icon-btn ${
+              isNotificationsOpen ? "active" : ""
+            }`}
+            onClick={toggleNotifications}
+            aria-label="Notifications"
+            aria-expanded={isNotificationsOpen}
+          >
+            <FaBell />
 
-            <FaUserCircle
-              className="profile-icon"
-            />
+            {unreadCount > 0 && (
+              <span className="navbar-notification-badge">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </button>
 
-            <div className="profile-info">
+          {/* Profile */}
+          <button
+            ref={profileButtonRef}
+            type="button"
+            className={`navbar-profile-btn ${
+              isProfileOpen ? "active" : ""
+            }`}
+            onClick={toggleProfile}
+            aria-label="Open profile menu"
+            aria-expanded={isProfileOpen}
+          >
+            <FaUserCircle className="navbar-profile-icon" />
 
-              <h4>
-                {user.name}
-              </h4>
+            <span className="navbar-profile-details">
+              <span className="navbar-user-name">{fullName}</span>
+              <span className="navbar-user-role">{formattedRole}</span>
+            </span>
 
-              {user.role && (
-                <p>
-                  {formatRole(user.role)}
-                </p>
-              )}
-
-            </div>
-
-          </div>
-
+            <FaChevronDown className="navbar-profile-chevron" />
+          </button>
         </div>
-
       </header>
 
-
-      {/* =====================================================
-          SIDEBAR
-      ===================================================== */}
+      {notificationMenu}
+      {profileMenu}
 
       <Sidebar
         isOpen={isSidebarOpen}
-        setIsOpen={setIsSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
     </>
   );

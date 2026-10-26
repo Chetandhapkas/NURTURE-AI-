@@ -35,6 +35,18 @@ import Sidebar from "./components/sidebar/Sidebar.jsx";
 import Welcome from "./pages/Welcome page/welcome.jsx";
 
 // =============================================================
+// DOCTOR CONSULTATION
+// =============================================================
+
+import Doctor from "./pages/Doctor/Doctor.jsx";
+
+// =============================================================
+// EMERGENCY
+// =============================================================
+
+import Emergency from "./pages/Emergency/Emergency.jsx";
+
+// =============================================================
 // MOTHER FORMS
 // =============================================================
 
@@ -68,7 +80,6 @@ import BabyDevelopment from "./components/WelcomeCard/BabyDevelopment.jsx";
 import FamilyForm from "./pages/FamilyForm/FForm.jsx";
 import FamilyFormDetails from "./pages/FamilyForm/FForm1.jsx";
 import FamilyDashboard from "./pages/FamilyDashboard/familyDashboard.jsx";
-
 import MotherFamilyDashboard from "./pages/MotherFamilyDashboard/MotherFamilyDashboard.jsx";
 
 // =============================================================
@@ -86,9 +97,6 @@ import Assistant from "./pages/AIAssistant/Assistant.jsx";
 
 // =============================================================
 // MEDICINE & VACCINATION
-// IMPORTANT:
-// Folder must be:
-// src/pages/MedicineVaccination/Healthcare.jsx
 // =============================================================
 
 import Healthcare from "./pages/MedicineVaccination/HealthCare.jsx";
@@ -100,23 +108,30 @@ import Healthcare from "./pages/MedicineVaccination/HealthCare.jsx";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx";
 
 // =============================================================
-// Nutrition
+// NUTRITION
 // =============================================================
+
 import Nutrition from "./pages/Nutrition/Nutrition.jsx";
 
 // =============================================================
-//  Settings
+// SETTINGS
 // =============================================================
 
 import Settings from "./pages/Settings/Settings.jsx";
 
 // =============================================================
-//  ForgotPassword
+// FORGOT & RESET PASSWORD
 // =============================================================
 
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword.jsx";
 import ResetPassword from "./pages/ResetPassword/ResetPassword.jsx";
+
+// =============================================================
+// PRESCRIPTION GALLERY
+// =============================================================
+
 import PrescriptionGallery from "./pages/PrescriptionGallery/PrescriptionGallery";
+
 // =============================================================
 // APP
 // =============================================================
@@ -125,19 +140,14 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-
-        {/* =====================================================
-            WELCOME
-        ===================================================== */}
+        {/* WELCOME */}
 
         <Route
           path="/"
           element={<Welcome />}
         />
 
-        {/* =====================================================
-            AUTHENTICATION
-        ===================================================== */}
+        {/* AUTHENTICATION */}
 
         <Route
           path="/login"
@@ -149,9 +159,7 @@ function App() {
           element={<Register />}
         />
 
-        {/* =====================================================
-            MOTHER DASHBOARD
-        ===================================================== */}
+        {/* MOTHER DASHBOARD */}
 
         <Route
           path="/dashboard"
@@ -162,16 +170,12 @@ function App() {
           }
         />
 
-        {/* =====================================================
-            COMMON COMPONENTS
-        ===================================================== */}
+        {/* COMMON COMPONENTS */}
 
         <Route
           path="/navbar"
           element={
-            <ProtectedRoute
-              allowedRoles={["mother", "family member"]}
-            >
+            <ProtectedRoute allowedRoles={["mother", "family member"]}>
               <Navbar />
             </ProtectedRoute>
           }
@@ -180,33 +184,46 @@ function App() {
         <Route
           path="/sidebar"
           element={
-            <ProtectedRoute
-              allowedRoles={["mother", "family member"]}
-            >
+            <ProtectedRoute allowedRoles={["mother", "family member"]}>
               <Sidebar />
             </ProtectedRoute>
           }
         />
 
-        
-            {/* =====================================================
-                  NUTRITION ANALYZER
-                  ONLY MOTHER
-            ===================================================== */}
+        {/* DOCTOR CONSULTATION — ONLY MOTHER */}
 
-            <Route
-              path="/nutrition"
-              element={
-                <ProtectedRoute allowedRoles={["mother"]}>
-                <Nutrition />
-                </ProtectedRoute>
-              }
-            />
+        <Route
+          path="/doctor"
+          element={
+            <ProtectedRoute allowedRoles={["mother"]}>
+              <Doctor />
+            </ProtectedRoute>
+          }
+        />
 
-        {/* =====================================================
-            AI ASSISTANT
-            ONLY MOTHER
-        ===================================================== */}
+        {/* EMERGENCY — ONLY MOTHER */}
+
+        <Route
+          path="/emergency"
+          element={
+            <ProtectedRoute allowedRoles={["mother"]}>
+              <Emergency />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* NUTRITION ANALYZER — ONLY MOTHER */}
+
+        <Route
+          path="/nutrition"
+          element={
+            <ProtectedRoute allowedRoles={["mother"]}>
+              <Nutrition />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* AI ASSISTANT — ONLY MOTHER */}
 
         <Route
           path="/ai-assistant"
@@ -217,25 +234,18 @@ function App() {
           }
         />
 
+        {/* MOTHER FAMILY DASHBOARD */}
 
-        {/* =====================================================
-                MOTHER FAMILY DASHBOARD
-                ONLY MOTHER
-        ===================================================== */}
+        <Route
+          path="/my-family"
+          element={
+            <ProtectedRoute allowedRoles={["mother"]}>
+              <MotherFamilyDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/my-family"
-              element={
-              <ProtectedRoute allowedRoles={["mother"]}>
-                <MotherFamilyDashboard />
-              </ProtectedRoute>
-           }
-          />
-
-        {/* =====================================================
-            MEDICINE & VACCINATION
-            ONLY MOTHER
-        ===================================================== */}
+        {/* MEDICINE & VACCINATION */}
 
         <Route
           path="/medicine"
@@ -246,9 +256,7 @@ function App() {
           }
         />
 
-        {/* =====================================================
-            MOTHER PERSONAL INFORMATION
-        ===================================================== */}
+        {/* PERSONAL INFORMATION */}
 
         <Route
           path="/personal-info"
@@ -259,9 +267,7 @@ function App() {
           }
         />
 
-        {/* =====================================================
-            PREGNANCY DETAILS
-        ===================================================== */}
+        {/* PREGNANCY DETAILS */}
 
         <Route
           path="/pregnancy-details"
@@ -281,23 +287,18 @@ function App() {
           }
         />
 
-        {/* =====================================================
-    PRESCRIPTION GALLERY
-    ONLY MOTHER
-===================================================== */}
+        {/* PRESCRIPTION GALLERY */}
 
-<Route
-  path="/prescriptions"
-  element={
-    <ProtectedRoute allowedRoles={["mother"]}>
-      <PrescriptionGallery />
-    </ProtectedRoute>
-  }
-/>
+        <Route
+          path="/prescriptions"
+          element={
+            <ProtectedRoute allowedRoles={["mother"]}>
+              <PrescriptionGallery />
+            </ProtectedRoute>
+          }
+        />
 
-        {/* =====================================================
-            MEDICAL HISTORY
-        ===================================================== */}
+        {/* MEDICAL HISTORY */}
 
         <Route
           path="/medical-history"
@@ -308,10 +309,7 @@ function App() {
           }
         />
 
-        {/* =====================================================
-            APPOINTMENTS
-            ONLY MOTHER
-        ===================================================== */}
+        {/* APPOINTMENTS */}
 
         <Route
           path="/appointment"
@@ -331,10 +329,7 @@ function App() {
           }
         />
 
-        {/* =====================================================
-            PROFILE
-            ONLY MOTHER
-        ===================================================== */}
+        {/* PROFILE */}
 
         <Route
           path="/profile"
@@ -345,10 +340,7 @@ function App() {
           }
         />
 
-        {/* =====================================================
-            BABY DEVELOPMENT
-            ONLY MOTHER
-        ===================================================== */}
+        {/* BABY DEVELOPMENT */}
 
         <Route
           path="/baby-development"
@@ -359,10 +351,7 @@ function App() {
           }
         />
 
-        {/* =====================================================
-            HEALTH TRACKING
-            ONLY MOTHER
-        ===================================================== */}
+        {/* HEALTH TRACKING */}
 
         <Route
           path="/health-tracking"
@@ -373,10 +362,7 @@ function App() {
           }
         />
 
-        {/* =====================================================
-            REPORT
-            ONLY MOTHER
-        ===================================================== */}
+        {/* REPORT */}
 
         <Route
           path="/report"
@@ -387,10 +373,7 @@ function App() {
           }
         />
 
-        {/* =====================================================
-            FAMILY MEMBER FORM
-            ONLY FAMILY MEMBER
-        ===================================================== */}
+        {/* FAMILY MEMBER FORM */}
 
         <Route
           path="/family-form"
@@ -401,10 +384,7 @@ function App() {
           }
         />
 
-        {/* =====================================================
-            FAMILY MEMBER DETAILS FORM
-            ONLY FAMILY MEMBER
-        ===================================================== */}
+        {/* FAMILY MEMBER DETAILS */}
 
         <Route
           path="/family-form-details"
@@ -414,23 +394,19 @@ function App() {
             </ProtectedRoute>
           }
         />
-      {/* =====================================================
-            SETTINGS
-            MOTHER AND FAMFAMILYILY MEMBER
-        ===================================================== */}
-            <Route
-            path="/settings"
-              element={
-                <ProtectedRoute allowedRoles={["mother", "family member"]}>
-                <Settings />
-                </ProtectedRoute>
-            }
-            />
 
-        {/* =====================================================
-             DASHBOARD
-            ONLY FAMILY MEMBER
-        ===================================================== */}
+        {/* SETTINGS — MOTHER & FAMILY MEMBER */}
+
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute allowedRoles={["mother", "family member"]}>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* FAMILY DASHBOARD */}
 
         <Route
           path="/family-dashboard"
@@ -441,30 +417,24 @@ function App() {
           }
         />
 
-        {/* =====================================================
-            DASHBOARD
-            ONLY FAMILY MEMBER
-        ===================================================== */}
+        {/* FORGOT & RESET PASSWORD */}
 
-          <Route
-            path="/forgot-password"
-              element={<ForgotPassword />}
-              />
+        <Route
+          path="/forgot-password"
+          element={<ForgotPassword />}
+        />
 
-              <Route
-              path="/reset-password"
-              element={<ResetPassword />}
-            />
+        <Route
+          path="/reset-password"
+          element={<ResetPassword />}
+        />
 
-        {/* =====================================================
-            UNKNOWN ROUTE
-        ===================================================== */}
+        {/* UNKNOWN ROUTE */}
 
         <Route
           path="*"
           element={<RoleBasedHome />}
         />
-
       </Routes>
     </BrowserRouter>
   );
@@ -475,7 +445,6 @@ function App() {
 // =============================================================
 
 function RoleBasedHome() {
-
   const userId = sessionStorage.getItem("userId");
 
   const role = String(
@@ -486,9 +455,7 @@ function RoleBasedHome() {
     .replace(/_/g, " ")
     .replace(/\s+/g, " ");
 
-  // ===========================================================
   // NOT LOGGED IN
-  // ===========================================================
 
   if (
     !userId ||
@@ -498,9 +465,7 @@ function RoleBasedHome() {
     return <Welcome />;
   }
 
-  // ===========================================================
   // FAMILY MEMBER
-  // ===========================================================
 
   if (role === "family member") {
     return (
@@ -511,9 +476,7 @@ function RoleBasedHome() {
     );
   }
 
-  // ===========================================================
   // MOTHER
-  // ===========================================================
 
   if (role === "mother") {
     return (
@@ -524,9 +487,7 @@ function RoleBasedHome() {
     );
   }
 
-  // ===========================================================
   // UNKNOWN ROLE
-  // ===========================================================
 
   return (
     <Navigate
@@ -541,4 +502,3 @@ function RoleBasedHome() {
 // =============================================================
 
 export default App;
-
