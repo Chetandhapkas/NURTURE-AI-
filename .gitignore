@@ -68,3 +68,11 @@ Thumbs.db
 
 frontend/certs/localhost-key.pem
 frontend/certs/localhost.pem
+
+# Local HTTPS development certificates
+frontend/certs/localhost-key.pem
+frontend/certs/localhost.pem
+
+# Local HTTPS development certificates
+frontend/certs/localhost-key.pem
+frontend/certs/localhost.pem
