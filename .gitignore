@@ -65,3 +65,6 @@ Thumbs.db
 /playwright/.auth/
 
 /firebase-service-account.json
+
+frontend/certs/localhost-key.pem
+frontend/certs/localhost.pem
