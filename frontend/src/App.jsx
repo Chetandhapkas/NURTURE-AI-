@@ -50,7 +50,7 @@ import Emergency from "./pages/Emergency/Emergency.jsx";
 // MOTHER FORMS
 // =============================================================
 
-import PersonalInfo from "./pages/Form/PersonalInfo/personalInfo.jsx";
+import PersonalInfo from "./pages/Form/PersonalInfo/PersonalInfo.jsx";
 import PregnancyDetails from "./pages/Form/PregnancyDetails/PregnancyDetails.jsx";
 import MedicalHistory from "./pages/Form/MedicalHistory/MedicalHistory.jsx";
 
@@ -99,7 +99,7 @@ import Assistant from "./pages/AIAssistant/Assistant.jsx";
 // MEDICINE & VACCINATION
 // =============================================================
 
-import Healthcare from "./pages/MedicineVaccination/HealthCare.jsx";
+import Healthcare from "./pages/MedicineVaccination/Healthcare.jsx";
 
 // =============================================================
 // PROTECTED ROUTE
