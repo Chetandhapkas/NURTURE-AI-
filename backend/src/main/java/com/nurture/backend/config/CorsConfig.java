@@ -1,3 +1,4 @@
+
 package com.nurture.backend.config;
 
 import org.springframework.context.annotation.Bean;
@@ -15,12 +16,16 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
 
-                registry.addMapping("/**")
-                        .allowedOriginPatterns("*")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                registry.addMapping("/api/**")
+                        .allowedOrigins(
+                                "https://nurture-ai-frontend.vercel.app"
+                        )
+                        .allowedMethods(
+                                "GET", "POST", "PUT", "DELETE",
+                                "PATCH", "OPTIONS"
+                        )
                         .allowedHeaders("*")
-                        .allowCredentials(false);
-
+                        .allowCredentials(true);
             }
         };
     }
