@@ -15,10 +15,10 @@ public class CorsConfig {
 
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-
                 registry.addMapping("/api/**")
                         .allowedOriginPatterns(
                                 "http://localhost:5173",
+                                "http://10.157.64.217:5173",
                                 "https://nurture-ai-frontend.vercel.app",
                                 "https://nurture-ai-frontend-*-chetandhapkas2707.vercel.app"
                         )
