@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/pregnancy")
-@CrossOrigin(origins = "*")
 public class PregnancyProfileController {
 
     @Autowired

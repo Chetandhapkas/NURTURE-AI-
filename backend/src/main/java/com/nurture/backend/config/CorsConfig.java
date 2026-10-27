@@ -11,13 +11,14 @@ public class CorsConfig {
 
     @Bean
     public WebMvcConfigurer corsConfigurer() {
-
         return new WebMvcConfigurer() {
+
             @Override
             public void addCorsMappings(CorsRegistry registry) {
 
                 registry.addMapping("/api/**")
                         .allowedOriginPatterns(
+                                "http://localhost:5173",
                                 "https://nurture-ai-frontend.vercel.app",
                                 "https://nurture-ai-frontend-*-chetandhapkas2707.vercel.app"
                         )

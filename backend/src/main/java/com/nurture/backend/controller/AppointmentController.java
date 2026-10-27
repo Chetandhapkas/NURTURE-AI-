@@ -13,10 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/appointments")
-@CrossOrigin(
-        origins = "http://localhost:5173",
-        allowCredentials = "true"
-)
+
 public class AppointmentController {
 
     private final AppointmentService service;
