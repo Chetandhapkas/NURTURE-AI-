@@ -17,8 +17,9 @@ public class CorsConfig {
             public void addCorsMappings(CorsRegistry registry) {
 
                 registry.addMapping("/api/**")
-                        .allowedOrigins(
-                                "https://nurture-ai-frontend.vercel.app"
+                        .allowedOriginPatterns(
+                                "https://nurture-ai-frontend.vercel.app",
+                                "https://nurture-ai-frontend-*-chetandhapkas2707.vercel.app"
                         )
                         .allowedMethods(
                                 "GET", "POST", "PUT", "DELETE",
