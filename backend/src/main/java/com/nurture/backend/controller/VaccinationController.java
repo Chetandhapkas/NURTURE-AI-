@@ -8,7 +8,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/vaccinations")
-@CrossOrigin(origins = "*")
 public class VaccinationController {
 
     private final VaccinationService vaccinationService;

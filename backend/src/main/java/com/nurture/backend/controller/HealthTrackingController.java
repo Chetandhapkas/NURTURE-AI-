@@ -12,12 +12,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/health-tracking")
 @RequiredArgsConstructor
-@CrossOrigin(
-        origins = {
-                "http://localhost:5173",
-                "http://localhost:5174"
-        }
-)
+
 public class HealthTrackingController {
 
     private final DailyHealthTrackingService healthService;
