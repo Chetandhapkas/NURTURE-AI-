@@ -2,8 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import "./MotherFamilyDashboard.css";
 import Sidebar from "../../components/sidebar/Sidebar.jsx";
-
-const API_BASE = `http://${window.location.hostname}:8080/api`;
+import API from "../../services/api";
 
 export default function MotherFamilyDashboard() {
   const [members, setMembers] = useState([]);
@@ -24,29 +23,44 @@ export default function MotherFamilyDashboard() {
     setError("");
 
     try {
-      const response = await fetch(
-        `${API_BASE}/family/members?patientUserId=${encodeURIComponent(
+      const response = await API.get(
+        `/family/members?patientUserId=${encodeURIComponent(
           patientUserId
         )}`
       );
 
-      if (!response.ok) {
-        throw new Error(`Unable to load family members (${response.status}).`);
-      }
-
-      const data = await response.json();
+      const data = response.data;
 
       if (!Array.isArray(data)) {
-        throw new Error("The server returned an unexpected response.");
+        throw new Error(
+          "The server returned an unexpected response. Please check the family-member API."
+        );
       }
 
       setMembers(data);
     } catch (err) {
       setMembers([]);
+
+      const status = err.response?.status;
+      const responseData = err.response?.data;
+
+      let message =
+        typeof responseData === "string"
+          ? responseData
+          : responseData?.message || responseData?.error;
+
+      if (status === 404) {
+        message =
+          "The family-member list API was not found. Please check the backend controller mapping.";
+      } else if (status === 401 || status === 403) {
+        message =
+          "You are not authorized to view this information. Please log in again.";
+      }
+
       setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to load your connected family members."
+        message ||
+          err.message ||
+          "Unable to load your connected family members."
       );
     } finally {
       setLoading(false);

@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import {
   FaWhatsapp,
-  FaCalendarCheck,
   FaUserMd,
   FaPlus,
   FaArrowLeft,
@@ -10,6 +9,7 @@ import {
   FaTrash,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import API from "../../services/api";
 import "./Doctor.css";
 
 const defaultDoctors = [
@@ -51,6 +51,21 @@ function normalizeIndianWhatsApp(number) {
   return "";
 }
 
+function getErrorMessage(error, fallback) {
+  const responseData = error.response?.data;
+
+  if (typeof responseData === "string" && responseData.trim()) {
+    return responseData;
+  }
+
+  return (
+    responseData?.message ||
+    responseData?.error ||
+    error.message ||
+    fallback
+  );
+}
+
 function Doctor() {
   const navigate = useNavigate();
 
@@ -69,62 +84,85 @@ function Doctor() {
   const [form, setForm] = useState(emptyForm);
 
   useEffect(() => {
-    const controller = new AbortController();
+    let active = true;
 
     async function loadData() {
       try {
-        const response = await fetch("/api/profile/me", {
-          method: "GET",
-          credentials: "include",
-          headers: { Accept: "application/json" },
-          signal: controller.signal,
-        });
+        let profile = {};
+        let id = localStorage.getItem("userId") || "";
 
-        if (!response.ok) {
-          throw new Error("Unable to load your profile.");
+        try {
+          const response = await API.get("/profile/me");
+          const result = response.data;
+
+          profile = result?.user || result?.data || result || {};
+
+          id =
+            profile.userId ??
+            profile.user_id ??
+            id;
+
+          if (active) {
+            setPatient(profile);
+            setProfileError("");
+          }
+        } catch (error) {
+          if (!id) {
+            throw new Error(
+              getErrorMessage(
+                error,
+                "Unable to load your profile. Please log in again."
+              )
+            );
+          }
+
+          // Continue using the saved user ID if the profile endpoint
+          // is unavailable. The backend profile route can be checked separately.
+          if (active) {
+            setPatient({
+              fullName: localStorage.getItem("fullName") || "Patient",
+            });
+          }
         }
-
-        const result = await response.json();
-        const profile = result.user || result.data || result;
-
-        setPatient(profile);
-
-        const id =
-          profile.userId ??
-          profile.user_id ??
-          localStorage.getItem("userId");
 
         if (!id) {
           throw new Error("User ID not found. Please log in again.");
         }
 
-        setUserId(String(id));
-
-        const doctorsResponse = await fetch(
-          `/api/doctors/user/${encodeURIComponent(id)}`,
-          {
-            method: "GET",
-            credentials: "include",
-            headers: { Accept: "application/json" },
-            signal: controller.signal,
-          }
-        );
-
-        if (!doctorsResponse.ok) {
-          throw new Error("Unable to load your saved doctors.");
+        if (active) {
+          setUserId(String(id));
         }
 
-        const data = await doctorsResponse.json();
+        try {
+          const doctorsResponse = await API.get(
+            `/doctors/user/${encodeURIComponent(id)}`
+          );
 
-        setMyDoctors(Array.isArray(data) ? data : []);
-        setProfileError("");
-        setDoctorError("");
+          const data = doctorsResponse.data;
+
+          if (active) {
+            setMyDoctors(Array.isArray(data) ? data : []);
+            setDoctorError("");
+          }
+        } catch (error) {
+          if (active) {
+            setMyDoctors([]);
+            setDoctorError(
+              getErrorMessage(
+                error,
+                "Unable to load your saved doctors."
+              )
+            );
+          }
+        }
       } catch (error) {
-        if (error.name !== "AbortError") {
-          setProfileError(error.message || "Unable to load your profile.");
+        if (active) {
+          setProfileError(
+            error.message || "Unable to load your profile."
+          );
         }
       } finally {
-        if (!controller.signal.aborted) {
+        if (active) {
           setLoading(false);
         }
       }
@@ -132,7 +170,9 @@ function Doctor() {
 
     loadData();
 
-    return () => controller.abort();
+    return () => {
+      active = false;
+    };
   }, []);
 
   function getPatientName() {
@@ -209,41 +249,29 @@ function Doctor() {
     setSaving(true);
 
     try {
-      const response = await fetch(
-        `/api/doctors/user/${encodeURIComponent(userId)}`,
+      const response = await API.post(
+        `/doctors/user/${encodeURIComponent(userId)}`,
         {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({
-            doctorName: form.doctorName.trim(),
-            specialization: form.specialization.trim(),
-            hospitalName: form.hospitalName.trim(),
-            phoneNumber: form.phoneNumber.trim(),
-            email: form.email.trim(),
-            remarks: form.remarks.trim(),
-          }),
+          doctorName: form.doctorName.trim(),
+          specialization: form.specialization.trim(),
+          hospitalName: form.hospitalName.trim(),
+          phoneNumber: form.phoneNumber.trim(),
+          email: form.email.trim(),
+          remarks: form.remarks.trim(),
         }
       );
 
-      if (!response.ok) {
-        const result = await response.json().catch(() => ({}));
-        throw new Error(
-          result.message || "Unable to save doctor. Please try again."
-        );
-      }
-
-      const savedDoctor = await response.json();
+      const savedDoctor = response.data;
 
       setMyDoctors((previous) => [savedDoctor, ...previous]);
       setForm({ ...emptyForm });
       setShowForm(false);
       setFormError("");
+      setDoctorError("");
     } catch (error) {
-      setFormError(error.message || "Unable to save doctor.");
+      setFormError(
+        getErrorMessage(error, "Unable to save doctor.")
+      );
     } finally {
       setSaving(false);
     }
@@ -257,17 +285,9 @@ function Doctor() {
     setDeletingId(doctorId);
 
     try {
-      const response = await fetch(
-        `/api/doctors/user/${encodeURIComponent(userId)}/${encodeURIComponent(doctorId)}`,
-        {
-          method: "DELETE",
-          credentials: "include",
-        }
+      await API.delete(
+        `/doctors/user/${encodeURIComponent(userId)}/${encodeURIComponent(doctorId)}`
       );
-
-      if (!response.ok) {
-        throw new Error("Unable to remove doctor.");
-      }
 
       setMyDoctors((previous) =>
         previous.filter(
@@ -275,7 +295,9 @@ function Doctor() {
         )
       );
     } catch (error) {
-      window.alert(error.message || "Unable to remove doctor.");
+      window.alert(
+        getErrorMessage(error, "Unable to remove doctor.")
+      );
     } finally {
       setDeletingId(null);
     }

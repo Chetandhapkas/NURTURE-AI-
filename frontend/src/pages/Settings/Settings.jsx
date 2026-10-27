@@ -21,9 +21,9 @@ import {
 } from "react-icons/fa";
 
 import Sidebar from "../../components/sidebar/Sidebar.jsx";
+import API from "../../services/api";
 import "./Settings.css";
 
-const API_BASE = `http://${window.location.hostname}:8080/api`;
 const SETTINGS_KEY = "nurtureAISettings";
 
 const DEFAULT_SETTINGS = {
@@ -80,24 +80,17 @@ export default function Settings() {
     setMessage("");
 
     try {
-      const response = await fetch(
-        `${API_BASE}/settings/${encodeURIComponent(id)}`,
+      const response = await API.get(
+        `/settings/${encodeURIComponent(id)}`,
         {
-          method: "GET",
           headers: {
             Accept: "application/json",
           },
         }
       );
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          errorText || `Unable to load settings (${response.status}).`
-        );
-      }
+      const data = response.data;
 
-      const data = await response.json();
       const loadedSettings = {
         ...DEFAULT_SETTINGS,
         ...data,
@@ -125,8 +118,15 @@ export default function Settings() {
         console.error("Unable to read settings backup:", backupError);
       }
 
+      const detail =
+        error.response?.data?.message ||
+        error.response?.data ||
+        error.message;
+
       showMessage(
-        `Could not load settings from the server. ${error.message}`,
+        `Could not load settings from the server. ${
+          typeof detail === "string" ? detail : error.message
+        }`,
         "error"
       );
     } finally {
@@ -184,29 +184,22 @@ export default function Settings() {
     setMessage("");
 
     try {
-      const response = await fetch(
-        `${API_BASE}/settings/${encodeURIComponent(userId)}`,
+      const response = await API.put(
+        `/settings/${encodeURIComponent(userId)}`,
+        settings,
         {
-          method: "PUT",
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          body: JSON.stringify(settings),
         }
       );
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          errorText || `Unable to save settings (${response.status}).`
-        );
-      }
+      const data = response.data;
 
-      const data = await response.json();
       const updatedSettings = {
         ...DEFAULT_SETTINGS,
-        ...data,
+        ...(data && typeof data === "object" ? data : settings),
       };
 
       setSettings(updatedSettings);
@@ -221,8 +214,15 @@ export default function Settings() {
     } catch (error) {
       console.error("Settings save failed:", error);
 
+      const detail =
+        error.response?.data?.message ||
+        error.response?.data ||
+        error.message;
+
       showMessage(
-        `Unable to save settings to the server. ${error.message}`,
+        `Unable to save settings to the server. ${
+          typeof detail === "string" ? detail : error.message
+        }`,
         "error"
       );
     } finally {
