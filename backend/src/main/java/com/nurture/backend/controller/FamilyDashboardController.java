@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/family-members")
-@CrossOrigin(origins = "*")
+
 public class FamilyDashboardController {
 
     private final FamilyDashboardService familyDashboardService;

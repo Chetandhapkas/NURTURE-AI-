@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./MedicalHistory.css";
-
-const API_BASE_URL = "";
+const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL ||
+    "https://nurture-ai.onrender.com/api";
 
 const MedicalHistory = () => {
     const navigate = useNavigate();
@@ -65,8 +66,11 @@ const MedicalHistory = () => {
             );
 
             const response = await axios.get(
-                `${API_BASE_URL}/api/medical-history/${userId}`
-            );
+    `${API_BASE_URL}/medical-history/${id}`,
+    {
+        withCredentials: true,
+    }
+);
 
             console.log(
                 "Medical history response:",
@@ -206,14 +210,15 @@ const MedicalHistory = () => {
             );
 
             const response = await axios.post(
-                `${API_BASE_URL}/api/medical-history/${userId}`,
-                formData,
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
+    `${API_BASE_URL}/medical-history/${userId}`,
+    formData,
+    {
+        withCredentials: true,
+        headers: {
+            "Content-Type": "application/json",
+        },
+    }
+);
 
             console.log(
                 "Medical history save response:",
