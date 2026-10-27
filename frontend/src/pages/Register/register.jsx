@@ -17,7 +17,7 @@ import { FcGoogle } from "react-icons/fc";
 
 import API from "../../services/api";
 
-import "./Register.css";
+import "./register.css";
 
 function Register() {
   const navigate = useNavigate();

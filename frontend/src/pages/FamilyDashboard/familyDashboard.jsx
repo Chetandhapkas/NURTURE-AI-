@@ -25,7 +25,7 @@ import {
 } from "react-icons/fa";
 
 import api from "../../services/api";
-import "./FamilyDashboard.css";
+import "./familyDashboard.css";
 
 const getToday = () => {
   const now = new Date();
