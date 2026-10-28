@@ -14,6 +14,7 @@ import {
 } from "react-icons/fa";
 
 import Sidebar from "../sidebar/Sidebar";
+import API from "../../services/api";
 import "./Navbar.css";
 
 const pageTitles = {
@@ -64,6 +65,7 @@ function Navbar() {
     (item) => item.read === false
   ).length;
 
+  // Close menus when clicking outside or pressing Escape.
   useEffect(() => {
     function handleOutsideClick(event) {
       const target = event.target;
@@ -103,6 +105,7 @@ function Navbar() {
     };
   }, []);
 
+  // Fetch notification history from the configured backend.
   useEffect(() => {
     if (!isNotificationsOpen) return undefined;
 
@@ -119,40 +122,45 @@ function Navbar() {
       setNotificationError("");
 
       try {
-        const response = await fetch(
-          `/api/notifications/history/${encodeURIComponent(userId)}`,
+        const response = await API.get(
+          `/notifications/history/${encodeURIComponent(userId)}`,
           {
-            headers: { Accept: "application/json" },
             signal: controller.signal,
+            headers: {
+              Accept: "application/json",
+            },
           }
         );
 
-        if (!response.ok) {
-          throw new Error(
-            response.status === 404
-              ? "Notification history API was not found."
-              : "Unable to load notifications."
-          );
-        }
-
-        const data = await response.json();
+        const data = response.data;
 
         const list = Array.isArray(data)
           ? data
-          : Array.isArray(data.content)
+          : Array.isArray(data?.content)
             ? data.content
             : [];
 
         setNotifications(
           list.map((item) => ({
             ...item,
-            read: item.read ?? item.isRead ?? item.is_read ?? true,
+            read:
+              item.read ??
+              item.isRead ??
+              item.is_read ??
+              true,
           }))
         );
       } catch (error) {
-        if (error.name !== "AbortError") {
+        if (
+          error.name !== "AbortError" &&
+          error.code !== "ERR_CANCELED"
+        ) {
+          console.error("Notification history error:", error);
+
           setNotificationError(
-            error.message || "Unable to load notifications."
+            error.response?.status === 404
+              ? "Notification history API was not found."
+              : "Unable to load notifications. Please try again."
           );
         }
       } finally {
@@ -342,7 +350,9 @@ function Navbar() {
           <button
             type="button"
             className="navbar-menu-btn"
-            onClick={() => setIsSidebarOpen((previous) => !previous)}
+            onClick={() =>
+              setIsSidebarOpen((previous) => !previous)
+            }
             aria-label="Toggle sidebar"
             aria-expanded={isSidebarOpen}
           >
