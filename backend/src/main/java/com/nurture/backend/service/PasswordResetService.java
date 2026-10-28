@@ -1,3 +1,4 @@
+
 package com.nurture.backend.service;
 
 import com.nurture.backend.dto.ResetPasswordRequest;
@@ -6,12 +7,7 @@ import com.nurture.backend.entity.PasswordResetToken;
 import com.nurture.backend.repository.LoginRepository;
 import com.nurture.backend.repository.PasswordResetTokenRepository;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailException;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,14 +23,12 @@ import java.util.HexFormat;
 @Service
 public class PasswordResetService {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(PasswordResetService.class);
-
     private static final int TOKEN_EXPIRY_MINUTES = 15;
 
     private final LoginRepository loginRepository;
     private final PasswordResetTokenRepository tokenRepository;
-    private final JavaMailSender mailSender;
+    private final EmailService emailService;
+
     private final BCryptPasswordEncoder passwordEncoder =
             new BCryptPasswordEncoder();
 
@@ -43,17 +37,14 @@ public class PasswordResetService {
     @Value("${app.frontend-url:http://localhost:5173}")
     private String frontendUrl;
 
-    @Value("${spring.mail.username}")
-    private String mailUsername;
-
     public PasswordResetService(
             LoginRepository loginRepository,
             PasswordResetTokenRepository tokenRepository,
-            JavaMailSender mailSender
-    ) {
+            EmailService emailService) {
+
         this.loginRepository = loginRepository;
         this.tokenRepository = tokenRepository;
-        this.mailSender = mailSender;
+        this.emailService = emailService;
     }
 
     // REQUEST PASSWORD RESET
@@ -109,34 +100,34 @@ public class PasswordResetService {
                 + "/reset-password?token="
                 + rawToken;
 
-        SimpleMailMessage message = new SimpleMailMessage();
-
-        message.setFrom(mailUsername);
-        message.setTo(user.getEmail());
-        message.setSubject("Reset Your NURTURE AI Password");
-
-        message.setText(
-                "Hello " + user.getFullName() + ",\n\n"
-                        + "We received a request to reset your NURTURE AI password.\n\n"
-                        + "Use the link below to choose a new password:\n"
-                        + resetLink + "\n\n"
-                        + "This link expires in "
-                        + TOKEN_EXPIRY_MINUTES + " minutes and can be used only once.\n\n"
-                        + "If you did not request this reset, you can ignore this email.\n\n"
-                        + "NURTURE AI Team"
-        );
-
         try {
-            mailSender.send(message);
-        } catch (MailException exception) {
+            emailService.sendPasswordResetEmail(
+                    user.getEmail(),
+                    "Hello " + user.getFullName()
+                            + ",\n\n"
+                            + "We received a request to reset your "
+                            + "NURTURE AI password.\n\n"
+                            + "Use the link below to choose a new password:\n"
+                            + resetLink + "\n\n"
+                            + "This link expires in "
+                            + TOKEN_EXPIRY_MINUTES
+                            + " minutes and can be used only once.\n\n"
+                            + "If you did not request this reset, "
+                            + "you can ignore this email.\n\n"
+                            + "NURTURE AI Team"
+            );
 
-            // Invalidate the token if the email could not be sent.
+        } catch (RuntimeException exception) {
+
+            // Invalidate the token if email sending fails.
             resetToken.setUsedAt(LocalDateTime.now());
             tokenRepository.save(resetToken);
 
-            // Never log the reset token or password.
-            log.error(
-                    "Password reset email delivery failed for the account."
+            // Do not log reset tokens or sensitive email content.
+            throw new IllegalStateException(
+                    "Unable to send password reset email. "
+                            + "Please try again later.",
+                    exception
             );
         }
     }
@@ -145,10 +136,21 @@ public class PasswordResetService {
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
 
-        if (!request.getNewPassword().equals(
+        if (request.getNewPassword() == null
+                || request.getConfirmPassword() == null
+                || !request.getNewPassword().equals(
                 request.getConfirmPassword())) {
+
             throw new IllegalArgumentException(
                     "Passwords do not match."
+            );
+        }
+
+        if (request.getToken() == null
+                || request.getToken().isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "Reset token is required."
             );
         }
 
@@ -164,6 +166,7 @@ public class PasswordResetService {
         LocalDateTime now = LocalDateTime.now();
 
         if (!resetToken.getExpiresAt().isAfter(now)) {
+
             resetToken.setUsedAt(now);
             tokenRepository.save(resetToken);
 
@@ -173,9 +176,11 @@ public class PasswordResetService {
             );
         }
 
-        Login user = loginRepository.findById(resetToken.getUserId())
+        Login user = loginRepository
+                .findById(resetToken.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "This reset link is invalid. Please request a new one."
+                        "This reset link is invalid. "
+                                + "Please request a new one."
                 ));
 
         // Store the new password as a BCrypt hash.
@@ -198,6 +203,7 @@ public class PasswordResetService {
         }
     }
 
+    // HASH RESET TOKEN
     private String hashToken(String token) {
 
         try {
@@ -211,6 +217,7 @@ public class PasswordResetService {
             return HexFormat.of().formatHex(hash);
 
         } catch (NoSuchAlgorithmException exception) {
+
             throw new IllegalStateException(
                     "Unable to process password reset token.",
                     exception

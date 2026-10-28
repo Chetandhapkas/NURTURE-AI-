@@ -17,36 +17,42 @@ public class EmailService {
     public void sendRegistrationOtp(String email, String otp) {
         sendEmail(
                 email,
-                otp,
                 "Nurture AI - Registration OTP",
                 "Thank you for registering with Nurture AI."
+                        + "\n\nYour OTP is: " + otp
+                        + "\n\nValid for 5 minutes."
         );
     }
 
     public void sendFamilyAccessOtp(String email, String otp) {
         sendEmail(
                 email,
-                otp,
                 "Nurture AI - Family Access OTP",
                 "A family member is requesting access to your profile."
+                        + "\n\nYour OTP is: " + otp
+                        + "\n\nValid for 5 minutes."
+        );
+    }
+
+    public void sendPasswordResetEmail(String email, String body) {
+        sendEmail(
+                email,
+                "Reset Your NURTURE AI Password",
+                body
         );
     }
 
     private void sendEmail(
             String email,
-            String otp,
             String subject,
-            String intro) {
+            String body) {
 
         SimpleMailMessage message = new SimpleMailMessage();
 
         message.setFrom(System.getenv("MAIL_USERNAME"));
         message.setTo(email);
         message.setSubject(subject);
-        message.setText(
-                intro + "\n\nYour OTP is: " + otp +
-                        "\n\nValid for 5 minutes."
-        );
+        message.setText(body);
 
         mailSender.send(message);
     }
