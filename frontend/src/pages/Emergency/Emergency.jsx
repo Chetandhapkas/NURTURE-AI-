@@ -30,7 +30,7 @@ function Emergency() {
 
       try {
         const response = await fetch(
-          `/api/family/members?patientUserId=${encodeURIComponent(userId)}`,
+          `https://nurture-ai.onrender.com/api/family/members?patientUserId=${encodeURIComponent(userId)}`,
           {
             headers: { Accept: "application/json" },
             signal: controller.signal,
@@ -38,12 +38,15 @@ function Emergency() {
         );
 
         if (!response.ok) {
-          throw new Error("Unable to load your family contacts.");
+          throw new Error(
+            `Unable to load family contacts (${response.status}).`
+          );
         }
 
         const data = await response.json();
 
         setMembers(Array.isArray(data) ? data : []);
+        setError("");
       } catch (err) {
         if (err.name !== "AbortError") {
           setError(err.message || "Unable to load family contacts.");
@@ -65,7 +68,6 @@ function Emergency() {
       member.phoneNumber ?? member.phone_number ?? ""
     ).trim();
 
-    // Keep digits and an optional leading plus sign.
     const cleanedPhone = phone.replace(/[^\d+]/g, "");
 
     if (!cleanedPhone || !/^\+?\d+$/.test(cleanedPhone)) {
@@ -109,7 +111,7 @@ function Emergency() {
         <h2>Your Emergency Contacts</h2>
 
         <p className="emergency-section-description">
-          Select a family member to open your device's calling app.
+          Select a family member to open your device&apos;s calling app.
         </p>
 
         {loading ? (
@@ -154,17 +156,12 @@ function Emergency() {
                   </div>
 
                   <div className="emergency-contact-info">
-                    <h3>
-                      {member.memberName || "Family Member"}
-                    </h3>
+                    <h3>{member.memberName || "Family Member"}</h3>
 
-                    <p>
-                      {member.relationship || "Family contact"}
-                    </p>
+                    <p>{member.relationship || "Family contact"}</p>
 
                     <span>
-                      {phoneNumber ||
-                        "Phone number not available"}
+                      {phoneNumber || "Phone number not available"}
                     </span>
                   </div>
 
@@ -197,7 +194,7 @@ function Emergency() {
 
       <div className="emergency-safety-note">
         <strong>Important:</strong> For a life-threatening emergency
-        in India, call 112. This feature opens your device's calling
+        in India, call 112. This feature opens your device&apos;s calling
         app; it does not automatically contact hospitals or emergency
         services.
       </div>
