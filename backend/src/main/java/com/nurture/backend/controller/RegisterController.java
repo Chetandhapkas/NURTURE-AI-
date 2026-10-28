@@ -1,3 +1,4 @@
+
 package com.nurture.backend.controller;
 
 import com.nurture.backend.dto.RegisterRequest;
@@ -5,12 +6,15 @@ import com.nurture.backend.repository.LoginRepository;
 import com.nurture.backend.service.EmailService;
 import com.nurture.backend.service.OtpService;
 import com.nurture.backend.service.RegisterService;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
-
 public class RegisterController {
 
     private final RegisterService registerService;
@@ -30,56 +34,55 @@ public class RegisterController {
         this.loginRepository = loginRepository;
     }
 
-    // ===========================
     // TEST API
-    // ===========================
-
     @GetMapping("/test")
     public ResponseEntity<String> test() {
-
-        System.out.println("TEST API CALLED");
-
         return ResponseEntity.ok("Backend connected successfully");
     }
 
-    // ===========================
-    // SEND OTP API
-    // ===========================
-
+    // SEND REGISTRATION OTP
     @PostMapping("/send-otp")
-    public ResponseEntity<String> sendOtp(
+    public ResponseEntity<?> sendOtp(
             @RequestBody RegisterRequest request) {
 
-        System.out.println("EMAIL RECEIVED : " + request.getEmail());
+        String email = request.getEmail();
 
-        // Check whether email already exists
-        if (loginRepository.findByEmail(request.getEmail()).isPresent()) {
-
-            return ResponseEntity
-                    .badRequest()
-                    .body("Email already exists");
+        if (email == null || email.trim().isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Email is required"));
         }
 
-        System.out.println("EMAIL CHECK PASSED");
+        email = email.trim().toLowerCase();
 
-        // Generate OTP
-        String otp = otpService.generateOtp(request.getEmail());
+        if (loginRepository.findByEmail(email).isPresent()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Email already exists"));
+        }
 
-        System.out.println("OTP GENERATED : " + otp);
+        String otp = otpService.generateOtp(email);
 
-        // Send OTP to email
-        emailService.sendOtp(request.getEmail(), otp);
+        try {
+            emailService.sendRegistrationOtp(email, otp);
 
-        System.out.println("EMAIL SENT SUCCESSFULLY");
+            System.out.println("Registration OTP email sent successfully.");
 
-        // Send response to frontend
-        return ResponseEntity.ok("OTP sent successfully");
+            return ResponseEntity.ok(
+                    Map.of("message", "OTP sent successfully")
+            );
+
+        } catch (Exception e) {
+            System.err.println("Failed to send registration OTP email.");
+            e.printStackTrace();
+
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(Map.of(
+                            "message",
+                            "Unable to send OTP email. Please try again later."
+                    ));
+        }
     }
 
-    // ===========================
     // REGISTER API
-    // ===========================
-
     @PostMapping("/register")
     public ResponseEntity<String> register(
             @RequestBody RegisterRequest request) {
@@ -87,12 +90,9 @@ public class RegisterController {
         String result = registerService.register(request);
 
         if ("Registration Successful".equals(result)) {
-
             return ResponseEntity.ok(result);
         }
 
-        return ResponseEntity
-                .badRequest()
-                .body(result);
+        return ResponseEntity.badRequest().body(result);
     }
 }

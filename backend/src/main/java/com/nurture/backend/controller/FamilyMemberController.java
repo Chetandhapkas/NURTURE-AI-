@@ -252,10 +252,7 @@ public class FamilyMemberController {
             // SEND OTP TO MOTHER
             // -------------------------------------------------
 
-            emailService.sendOtp(
-                    patientEmail,
-                    otp
-            );
+            emailService.sendFamilyAccessOtp(patientEmail, otp);
 
 
             // -------------------------------------------------

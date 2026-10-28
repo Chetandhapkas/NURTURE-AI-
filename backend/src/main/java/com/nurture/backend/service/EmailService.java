@@ -1,6 +1,6 @@
+
 package com.nurture.backend.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -8,92 +8,46 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailService {
 
-    @Autowired
-    private JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
 
-    // =========================================================
-    // SEND FAMILY MEMBER VERIFICATION OTP
-    // =========================================================
+    public EmailService(JavaMailSender mailSender) {
+        this.mailSender = mailSender;
+    }
 
-    public void sendOtp(String toEmail, String otp) {
+    public void sendRegistrationOtp(String email, String otp) {
+        sendEmail(
+                email,
+                otp,
+                "Nurture AI - Registration OTP",
+                "Thank you for registering with Nurture AI."
+        );
+    }
 
-        try {
+    public void sendFamilyAccessOtp(String email, String otp) {
+        sendEmail(
+                email,
+                otp,
+                "Nurture AI - Family Access OTP",
+                "A family member is requesting access to your profile."
+        );
+    }
 
-            SimpleMailMessage message =
-                    new SimpleMailMessage();
+    private void sendEmail(
+            String email,
+            String otp,
+            String subject,
+            String intro) {
 
-            // -------------------------------------------------
-            // RECEIVER
-            // -------------------------------------------------
+        SimpleMailMessage message = new SimpleMailMessage();
 
-            message.setTo(toEmail);
+        message.setFrom(System.getenv("MAIL_USERNAME"));
+        message.setTo(email);
+        message.setSubject(subject);
+        message.setText(
+                intro + "\n\nYour OTP is: " + otp +
+                        "\n\nValid for 5 minutes."
+        );
 
-            // -------------------------------------------------
-            // SUBJECT
-            // -------------------------------------------------
-
-            message.setSubject(
-                    "Nurture AI - Family Access Verification OTP"
-            );
-
-            // -------------------------------------------------
-            // EMAIL BODY
-            // -------------------------------------------------
-
-            message.setText(
-                    "Dear User,\n\n" +
-
-                            "A family member is requesting secure access " +
-                            "to your Nurture AI pregnancy profile.\n\n" +
-
-                            "Your verification OTP is:\n\n" +
-
-                            otp +
-
-                            "\n\n" +
-
-                            "This OTP is valid for 5 minutes.\n\n" +
-
-                            "If you approve this access, you may share " +
-                            "this OTP with the family member who is " +
-                            "requesting access.\n\n" +
-
-                            "If you did not request or approve this access, " +
-                            "please do not share the OTP with anyone.\n\n" +
-
-                            "Regards,\n" +
-                            "Team Nurture AI"
-            );
-
-            // -------------------------------------------------
-            // SEND EMAIL
-            // -------------------------------------------------
-
-            mailSender.send(message);
-
-            System.out.println(
-                    "========================================"
-            );
-
-            System.out.println(
-                    "FAMILY MEMBER OTP MAIL SENT SUCCESSFULLY"
-            );
-
-            System.out.println(
-                    "OTP sent to: " + toEmail
-            );
-
-            System.out.println(
-                    "========================================"
-            );
-
-        } catch (Exception e) {
-
-            System.out.println(
-                    "========== MAIL ERROR =========="
-            );
-
-            e.printStackTrace();
-        }
+        mailSender.send(message);
     }
 }
