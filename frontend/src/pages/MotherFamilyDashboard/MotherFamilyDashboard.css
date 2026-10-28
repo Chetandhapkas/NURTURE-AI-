@@ -2,6 +2,7 @@
 /* =====================================================
    NURTURE AI — MOTHER FAMILY DASHBOARD
    Lavender & Pink Theme
+   Responsive Layout — Desktop, Tablet, Mobile
    ===================================================== */
 
 .family-dashboard-layout {
@@ -13,19 +14,19 @@
   --family-border: #eadcf5;
   --family-background: #faf7ff;
   --family-white: #ffffff;
+  --family-sidebar-width: 303px;
 
-  position: relative !important;
-  display: block !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 100vh;
-  margin: 0 !important;
-  padding: 0 !important;
+  margin: 0;
+  padding: 0;
 
   color: var(--family-text);
   background: var(--family-background);
-
   overflow-x: clip;
   isolation: isolate;
 }
@@ -38,38 +39,52 @@
 }
 
 /* =====================================================
-   SIDEBAR — MATCH THE ACTUAL WIDTH TO THE PAGE OFFSET
+   SIDEBAR — DESKTOP
    ===================================================== */
 
-/* The sidebar component uses the .sidebar class. */
 .family-dashboard-layout > .sidebar {
   box-sizing: border-box !important;
-  width: 255px !important;
-  min-width: 255px !important;
-  max-width: 255px !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  bottom: 0 !important;
+
+  width: var(--family-sidebar-width) !important;
+  min-width: var(--family-sidebar-width) !important;
+  max-width: var(--family-sidebar-width) !important;
+  height: 100vh !important;
+
+  margin: 0 !important;
+  z-index: 1000 !important;
+
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* =====================================================
-   MAIN PAGE — KEEP IT OUTSIDE THE FIXED SIDEBAR
+   MAIN PAGE — PREVENT SIDEBAR OVERLAP
    ===================================================== */
 
 .family-dashboard-layout > main.family-dashboard-page {
   display: block !important;
   position: relative !important;
   float: none !important;
+
   inset: auto !important;
-  left: auto !important;
-  right: auto !important;
   top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
   transform: none !important;
 
   box-sizing: border-box !important;
-  width: calc(100% - 255px) !important;
+
+  width: calc(100% - var(--family-sidebar-width)) !important;
   min-width: 0 !important;
   max-width: none !important;
   min-height: 100vh;
 
-  margin: 0 0 0 255px !important;
+  margin: 0 0 0 var(--family-sidebar-width) !important;
   padding: 30px !important;
 
   color: var(--family-text);
@@ -78,7 +93,6 @@
   overflow-x: clip;
 }
 
-/* Limit content width and prevent children from expanding the page. */
 .family-dashboard-content {
   display: flex;
   flex-direction: column;
@@ -106,6 +120,7 @@
   justify-content: space-between;
   gap: 20px;
 
+  width: 100%;
   min-width: 0;
   margin: 0;
   padding: 28px 30px;
@@ -141,19 +156,24 @@
 
 .family-dashboard-header h1 {
   margin: 0 0 10px;
+
   color: var(--family-text);
   font-size: clamp(27px, 2.5vw, 36px);
   font-weight: 800;
   line-height: 1.25;
   letter-spacing: -0.6px;
+
+  overflow-wrap: anywhere;
 }
 
 .family-dashboard-header p {
   max-width: 780px;
   margin: 0;
+
   color: var(--family-muted);
   font-size: 15px;
   line-height: 1.8;
+  overflow-wrap: anywhere;
 }
 
 .family-dashboard-header-icon {
@@ -174,7 +194,53 @@
 }
 
 /* =====================================================
-   SUMMARY AND REFRESH BUTTON
+   BACK BUTTON
+   ===================================================== */
+
+.family-dashboard-page .family-back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  min-height: 40px;
+  margin: 0 0 20px;
+  padding: 9px 16px;
+
+  border: 1px solid #e4d3f5;
+  border-radius: 11px;
+
+  color: #7c3aed;
+  background: #ffffff;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.family-dashboard-page .family-back-button:hover {
+  color: #ffffff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  box-shadow: 0 5px 14px rgba(168, 85, 247, 0.2);
+  transform: translateX(-2px);
+}
+
+.family-dashboard-page .family-back-button:focus-visible {
+  outline: 3px solid rgba(168, 85, 247, 0.35);
+  outline-offset: 3px;
+}
+
+/* =====================================================
+   SUMMARY CARD
    ===================================================== */
 
 .family-dashboard-summary {
@@ -182,6 +248,7 @@
   align-items: center;
   gap: 18px;
 
+  width: 100%;
   min-width: 0;
   margin: 0;
   padding: 22px 24px;
@@ -216,6 +283,7 @@
 .family-summary-info > span {
   display: block;
   margin-bottom: 4px;
+
   color: var(--family-muted);
   font-size: 14px;
   font-weight: 600;
@@ -224,6 +292,7 @@
 .family-summary-info > strong {
   display: block;
   margin-bottom: 3px;
+
   color: var(--family-text);
   font-size: 29px;
   font-weight: 800;
@@ -237,7 +306,10 @@
   line-height: 1.6;
 }
 
-/* Buttons are scoped to this dashboard only. */
+/* =====================================================
+   REFRESH AND RETRY BUTTONS
+   ===================================================== */
+
 .family-dashboard-page button {
   font-family: inherit;
 }
@@ -342,6 +414,7 @@
    ===================================================== */
 
 .family-members-section {
+  width: 100%;
   min-width: 0;
   margin: 0;
 }
@@ -357,6 +430,7 @@
 
 .family-members-heading h2 {
   margin: 0 0 7px;
+
   color: var(--family-text);
   font-size: 23px;
   font-weight: 800;
@@ -365,13 +439,14 @@
 
 .family-members-heading p {
   margin: 0;
+
   color: var(--family-muted);
   font-size: 14px;
   line-height: 1.7;
 }
 
 /* =====================================================
-   MEMBER CARDS
+   FAMILY MEMBER CARDS
    ===================================================== */
 
 .family-members-grid {
@@ -466,6 +541,7 @@
 
 .family-member-card h3 {
   margin: 0 0 7px;
+
   color: var(--family-text);
   font-size: 21px;
   font-weight: 800;
@@ -607,6 +683,7 @@
 
 .family-empty-state > strong {
   margin: 12px 0 6px;
+
   color: var(--family-text);
   font-size: 17px;
   font-weight: 750;
@@ -616,6 +693,7 @@
 .family-empty-state > p {
   max-width: 430px;
   margin: 0;
+
   color: var(--family-muted);
   font-size: 14px;
   line-height: 1.8;
@@ -662,16 +740,14 @@
 
 /* =====================================================
    TABLET
-   Sidebar moves off-canvas at this breakpoint.
-   Do not reserve desktop sidebar space here.
    ===================================================== */
 
 @media (max-width: 1024px) {
-  .family-dashboard-layout > .sidebar {
-    width: 270px !important;
-    min-width: 270px !important;
-    max-width: 270px !important;
-  }
+  /*
+   * The main page uses the full viewport width.
+   * The sidebar's mobile/drawer behavior remains
+   * controlled by the Sidebar component's own CSS.
+   */
 
   .family-dashboard-layout > main.family-dashboard-page {
     width: 100% !important;
@@ -684,9 +760,17 @@
     max-width: 100%;
   }
 
+  .family-dashboard-header {
+    padding: 24px;
+  }
+
   .family-members-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
+  }
+
+  .family-member-card {
+    padding: 21px;
   }
 }
 
@@ -704,16 +788,28 @@
   }
 
   .family-dashboard-header {
+    align-items: flex-start;
+    gap: 12px;
     padding: 22px 19px;
     border-radius: 17px;
   }
 
+  .family-dashboard-header-text {
+    flex: 1 1 0;
+  }
+
   .family-dashboard-header h1 {
     font-size: 27px;
+    letter-spacing: -0.4px;
   }
 
   .family-dashboard-header p {
     font-size: 14px;
+  }
+
+  .family-dashboard-eyebrow {
+    font-size: 11px;
+    letter-spacing: 1px;
   }
 
   .family-dashboard-header-icon {
@@ -723,10 +819,22 @@
     font-size: 21px;
   }
 
+  .family-dashboard-page .family-back-button {
+    min-height: 38px;
+    margin-bottom: 16px;
+    padding: 8px 12px;
+  }
+
   .family-dashboard-summary {
     flex-wrap: wrap;
     gap: 14px;
     padding: 18px;
+  }
+
+  .family-summary-icon {
+    flex-basis: 50px;
+    width: 50px;
+    height: 50px;
   }
 
   .family-summary-info {
@@ -760,35 +868,111 @@
     padding: 15px 12px !important;
   }
 
+  .family-dashboard-content {
+    gap: 16px;
+  }
+
   .family-dashboard-header {
+    gap: 8px;
     padding: 18px 15px;
+    border-radius: 15px;
   }
 
   .family-dashboard-header h1 {
     font-size: 24px;
   }
 
+  .family-dashboard-header p {
+    font-size: 13px;
+    line-height: 1.75;
+  }
+
   .family-dashboard-eyebrow {
     font-size: 10px;
-    letter-spacing: 1px;
+    letter-spacing: 0.8px;
+  }
+
+  .family-dashboard-header-icon {
+    flex-basis: 34px;
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+    font-size: 19px;
+  }
+
+  .family-dashboard-page .family-back-button {
+    gap: 6px;
+    min-height: 36px;
+    margin-bottom: 14px;
+    padding: 7px 11px;
+    font-size: 13px;
   }
 
   .family-dashboard-summary {
+    gap: 12px;
     padding: 15px;
+    border-radius: 15px;
   }
 
   .family-summary-icon {
-    flex-basis: 48px;
-    width: 48px;
-    height: 48px;
+    flex-basis: 44px;
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
+    font-size: 22px;
+  }
+
+  .family-summary-info > span {
+    font-size: 13px;
   }
 
   .family-summary-info > strong {
     font-size: 26px;
   }
 
+  .family-summary-info > p {
+    font-size: 12px;
+  }
+
+  .family-dashboard-page .family-refresh-button {
+    min-height: 42px;
+    padding: 10px 14px;
+  }
+
+  .family-dashboard-error {
+    gap: 9px;
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  .family-members-heading h2 {
+    font-size: 20px;
+  }
+
+  .family-members-heading p {
+    font-size: 13px;
+  }
+
   .family-member-card {
     padding: 17px;
+    border-radius: 16px;
+  }
+
+  .family-member-card-top {
+    gap: 8px;
+  }
+
+  .family-member-avatar {
+    flex-basis: 48px;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    font-size: 16px;
+  }
+
+  .family-connected-badge {
+    padding: 6px 9px;
+    font-size: 11px;
   }
 
   .family-member-card h3 {
@@ -803,10 +987,65 @@
     flex-basis: 35px;
     width: 35px;
     height: 35px;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+
+  .family-detail-row strong,
+  .family-detail-row a {
+    font-size: 13px;
   }
 
   .family-empty-state {
+    min-height: 210px;
     padding: 25px 16px;
+  }
+
+  .family-empty-state > strong {
+    font-size: 16px;
+  }
+
+  .family-empty-state > p {
+    font-size: 13px;
+  }
+}
+
+/* =====================================================
+   EXTRA SMALL PHONES
+   ===================================================== */
+
+@media (max-width: 360px) {
+  .family-dashboard-layout > main.family-dashboard-page {
+    padding: 12px 9px !important;
+  }
+
+  .family-dashboard-header {
+    padding: 15px 12px;
+  }
+
+  .family-dashboard-header h1 {
+    font-size: 22px;
+  }
+
+  .family-dashboard-header-icon {
+    display: none;
+  }
+
+  .family-dashboard-summary {
+    padding: 13px;
+  }
+
+  .family-member-card {
+    padding: 15px;
+  }
+
+  .family-member-card-top {
+    align-items: flex-start;
+  }
+
+  .family-connected-badge {
+    white-space: normal;
+    text-align: center;
   }
 }
 

@@ -1,3 +1,4 @@
+
 /* =====================================================
    GLOBAL LAYOUT
 ===================================================== */
@@ -9,11 +10,6 @@
     background: #f6f8fb;
 }
 
-
-/* =====================================================
-   MAIN CONTENT AREA
-===================================================== */
-
 .healthcare-main {
     flex: 1;
     min-width: 0;
@@ -22,11 +18,6 @@
     box-sizing: border-box;
 }
 
-
-/* =====================================================
-   PAGE
-===================================================== */
-
 .healthcare-page {
     min-height: 100vh;
     padding: 30px;
@@ -34,7 +25,6 @@
     color: #172033;
     box-sizing: border-box;
 }
-
 
 /* =====================================================
    HEADER
@@ -48,10 +38,22 @@
     margin-bottom: 30px;
 }
 
+.healthcare-heading-group {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-width: 0;
+}
+
+.healthcare-heading-text {
+    min-width: 0;
+}
+
 .healthcare-header h1 {
     margin: 0;
     font-size: 32px;
     font-weight: 700;
+    line-height: 1.3;
     color: #172033;
 }
 
@@ -59,26 +61,80 @@
     margin: 7px 0 0;
     color: #667085;
     font-size: 14px;
+    line-height: 1.6;
 }
 
+/* =====================================================
+   BACK BUTTON
+===================================================== */
+
+.healthcare-back-button {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 10px 15px;
+    border: 1px solid #d9dee7;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #344054;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.healthcare-back-button span:first-child {
+    font-size: 21px;
+    line-height: 1;
+}
+
+.healthcare-back-button:hover {
+    background: #eef4ff;
+    border-color: #246bce;
+    color: #246bce;
+    transform: translateX(-2px);
+}
+
+.healthcare-back-button:active {
+    transform: translateX(0);
+}
+
+.healthcare-back-button:focus-visible,
+.refresh-button:focus-visible,
+.add-button:focus-visible,
+.taken-button:focus-visible,
+.stop-button:focus-visible {
+    outline: 3px solid rgba(36, 107, 206, 0.3);
+    outline-offset: 3px;
+}
 
 /* =====================================================
    REFRESH BUTTON
 ===================================================== */
 
 .refresh-button {
+    flex-shrink: 0;
     border: 1px solid #d9dee7;
     background: #ffffff;
     color: #344054;
     padding: 10px 16px;
     border-radius: 10px;
     cursor: pointer;
+    font-family: inherit;
     font-size: 14px;
     font-weight: 600;
     transition: all 0.2s ease;
 }
 
-.refresh-button:hover {
+.refresh-button:hover:not(:disabled) {
     background: #f1f4f8;
     border-color: #cbd2dc;
 }
@@ -87,7 +143,6 @@
     opacity: 0.6;
     cursor: not-allowed;
 }
-
 
 /* =====================================================
    SECTION
@@ -116,20 +171,22 @@
     margin: 5px 0 0;
     color: #7b8494;
     font-size: 13px;
+    line-height: 1.5;
 }
-
 
 /* =====================================================
    ADD BUTTON
 ===================================================== */
 
 .add-button {
+    flex-shrink: 0;
     border: none;
     background: #246bce;
     color: #ffffff;
     padding: 11px 17px;
     border-radius: 10px;
     cursor: pointer;
+    font-family: inherit;
     font-size: 13px;
     font-weight: 700;
     transition: all 0.2s ease;
@@ -145,32 +202,31 @@
     transform: translateY(0);
 }
 
-
 /* =====================================================
    GRID
 ===================================================== */
 
 .healthcare-grid {
     display: grid;
-    grid-template-columns: repeat(
-        auto-fill,
-        minmax(320px, 1fr)
-    );
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 18px;
+    align-items: stretch;
 }
-
 
 /* =====================================================
    HEALTHCARE CARD
 ===================================================== */
 
 .healthcare-card {
+    min-width: 0;
     background: #ffffff;
     border: 1px solid #e5e9ef;
     border-radius: 16px;
     padding: 19px;
     box-shadow: 0 3px 12px rgba(31, 41, 55, 0.04);
-    transition: all 0.2s ease;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
     box-sizing: border-box;
 }
 
@@ -178,7 +234,6 @@
     transform: translateY(-2px);
     box-shadow: 0 7px 20px rgba(31, 41, 55, 0.07);
 }
-
 
 /* =====================================================
    CARD HEADER
@@ -220,16 +275,15 @@
     font-size: 16px;
     font-weight: 700;
     color: #172033;
-    word-break: break-word;
+    overflow-wrap: anywhere;
 }
 
 .card-title-area p {
     margin: 4px 0 0;
     color: #7b8494;
     font-size: 12px;
-    word-break: break-word;
+    overflow-wrap: anywhere;
 }
-
 
 /* =====================================================
    STATUS BADGE
@@ -244,11 +298,7 @@
     letter-spacing: 0.3px;
 }
 
-.status-badge.due {
-    background: #fff3d6;
-    color: #946200;
-}
-
+.status-badge.due,
 .status-badge.pending {
     background: #fff3d6;
     color: #946200;
@@ -269,9 +319,8 @@
     color: #c73535;
 }
 
-
 /* =====================================================
-   CARD INFO
+   CARD INFORMATION
 ===================================================== */
 
 .card-info {
@@ -298,9 +347,8 @@
 .card-info strong {
     font-size: 13px;
     color: #344054;
-    word-break: break-word;
+    overflow-wrap: anywhere;
 }
-
 
 /* =====================================================
    NOTES
@@ -314,9 +362,8 @@
     color: #667085;
     font-size: 12px;
     line-height: 18px;
-    word-break: break-word;
+    overflow-wrap: anywhere;
 }
-
 
 /* =====================================================
    MARK AS TAKEN
@@ -331,6 +378,7 @@
     background: #246bce;
     color: #ffffff;
     cursor: pointer;
+    font-family: inherit;
     font-size: 13px;
     font-weight: 700;
     transition: all 0.2s ease;
@@ -345,7 +393,6 @@
     transform: translateY(0);
 }
 
-
 /* =====================================================
    STOP MEDICINE BUTTON
 ===================================================== */
@@ -359,18 +406,19 @@
     background: #fff7f7;
     color: #c73535;
     cursor: pointer;
+    font-family: inherit;
     font-size: 13px;
     font-weight: 700;
     transition: all 0.2s ease;
 }
 
-.stop-button:hover {
+.stop-button:hover:not(:disabled) {
     background: #ffecec;
     border-color: #e9aaaa;
     transform: translateY(-1px);
 }
 
-.stop-button:active {
+.stop-button:active:not(:disabled) {
     transform: translateY(0);
 }
 
@@ -379,10 +427,8 @@
     border-color: #e4e4e7;
     color: #a1a1aa;
     cursor: not-allowed;
-    transform: none;
     opacity: 0.7;
 }
-
 
 /* =====================================================
    LOCKED MESSAGE
@@ -401,7 +447,6 @@
     line-height: 17px;
 }
 
-
 /* =====================================================
    COMPLETED MESSAGE
 ===================================================== */
@@ -418,7 +463,6 @@
     font-size: 12px;
     font-weight: 600;
 }
-
 
 /* =====================================================
    EMPTY CARD
@@ -447,8 +491,8 @@
     margin: 0;
     color: #7b8494;
     font-size: 13px;
+    line-height: 1.6;
 }
-
 
 /* =====================================================
    LOADING
@@ -488,7 +532,6 @@
     }
 }
 
-
 /* =====================================================
    MODAL OVERLAY
 ===================================================== */
@@ -504,7 +547,6 @@
     z-index: 1000;
     box-sizing: border-box;
 }
-
 
 /* =====================================================
    MODAL
@@ -522,7 +564,6 @@
     box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
 }
 
-
 /* =====================================================
    MODAL SCROLLBAR
 ===================================================== */
@@ -539,7 +580,6 @@
     background: #d0d5dd;
     border-radius: 10px;
 }
-
 
 /* =====================================================
    MODAL HEADER
@@ -563,6 +603,7 @@
     margin: 5px 0 0;
     color: #7b8494;
     font-size: 13px;
+    line-height: 1.5;
 }
 
 .close-button {
@@ -584,7 +625,6 @@
     color: #344054;
 }
 
-
 /* =====================================================
    FORM
 ===================================================== */
@@ -592,6 +632,7 @@
 .form-group {
     display: flex;
     flex-direction: column;
+    min-width: 0;
     margin-bottom: 16px;
 }
 
@@ -606,6 +647,7 @@
 .form-group select,
 .form-group textarea {
     width: 100%;
+    min-width: 0;
     box-sizing: border-box;
     padding: 11px 12px;
     border: 1px solid #d9dee7;
@@ -637,10 +679,9 @@
 
 .form-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 15px;
 }
-
 
 /* =====================================================
    MODAL ACTIONS
@@ -660,6 +701,8 @@
     background: #ffffff;
     color: #344054;
     cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
     font-weight: 600;
     transition: all 0.2s ease;
 }
@@ -676,11 +719,13 @@
     background: #246bce;
     color: #ffffff;
     cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
     font-weight: 700;
     transition: all 0.2s ease;
 }
 
-.save-button:hover {
+.save-button:hover:not(:disabled) {
     background: #1c5caf;
 }
 
@@ -689,13 +734,11 @@
     cursor: not-allowed;
 }
 
-
 /* =====================================================
    RESPONSIVE - TABLET
 ===================================================== */
 
 @media (max-width: 1024px) {
-
     .healthcare-main {
         margin-left: 230px;
     }
@@ -705,25 +748,19 @@
     }
 
     .healthcare-grid {
-        grid-template-columns: repeat(
-            auto-fill,
-            minmax(280px, 1fr)
-        );
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    }
+
+    .healthcare-heading-group {
+        gap: 13px;
     }
 }
 
-
 /* =====================================================
-   RESPONSIVE - 768px
+   RESPONSIVE - TABLET / MOBILE
 ===================================================== */
 
 @media (max-width: 768px) {
-
-    /*
-       Sidebar may become mobile/floating
-       depending on your existing Sidebar.css.
-    */
-
     .healthcare-main {
         margin-left: 0;
         width: 100%;
@@ -735,17 +772,31 @@
     }
 
     .healthcare-header {
-        align-items: flex-start;
+        align-items: stretch;
         flex-direction: column;
-        gap: 15px;
+        gap: 16px;
+    }
+
+    .healthcare-heading-group {
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .healthcare-heading-text {
+        flex: 1;
     }
 
     .healthcare-header h1 {
         font-size: 28px;
     }
 
+    .healthcare-back-button {
+        min-height: 40px;
+        padding: 9px 12px;
+    }
+
     .refresh-button {
-        width: 100%;
+        align-self: flex-start;
     }
 
     .section-header {
@@ -759,11 +810,12 @@
     }
 
     .healthcare-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .form-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
     }
 
     .modal {
@@ -772,13 +824,11 @@
     }
 }
 
-
 /* =====================================================
    RESPONSIVE - MOBILE
 ===================================================== */
 
 @media (max-width: 480px) {
-
     .healthcare-page {
         padding: 15px;
         padding-top: 70px;
@@ -788,13 +838,28 @@
         margin-bottom: 25px;
     }
 
+    .healthcare-heading-group {
+        gap: 10px;
+    }
+
     .healthcare-header h1 {
-        font-size: 27px;
+        font-size: 25px;
     }
 
     .healthcare-header p {
-        font-size: 13px;
+        font-size: 12px;
         line-height: 19px;
+    }
+
+    .healthcare-back-button {
+        min-height: 38px;
+        gap: 5px;
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .healthcare-back-button span:first-child {
+        font-size: 19px;
     }
 
     .section-header h2 {
@@ -851,16 +916,27 @@
     }
 }
 
-
 /* =====================================================
    VERY SMALL MOBILE
 ===================================================== */
 
 @media (max-width: 360px) {
-
     .healthcare-page {
         padding-left: 12px;
         padding-right: 12px;
+    }
+
+    .healthcare-heading-group {
+        gap: 8px;
+    }
+
+    .healthcare-back-button {
+        gap: 4px;
+        padding: 8px;
+    }
+
+    .healthcare-header h1 {
+        font-size: 22px;
     }
 
     .healthcare-card {
@@ -881,5 +957,24 @@
     .status-badge {
         font-size: 8px;
         padding: 5px 7px;
+    }
+}
+
+/* =====================================================
+   REDUCED MOTION ACCESSIBILITY
+===================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    .healthcare-card,
+    .healthcare-back-button,
+    .refresh-button,
+    .add-button,
+    .taken-button,
+    .stop-button {
+        transition: none;
+    }
+
+    .healthcare-spinner {
+        animation-duration: 1.8s;
     }
 }

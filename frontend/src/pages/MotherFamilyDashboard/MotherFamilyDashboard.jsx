@@ -1,10 +1,13 @@
 
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./MotherFamilyDashboard.css";
 import Sidebar from "../../components/sidebar/Sidebar.jsx";
 import API from "../../services/api";
 
 export default function MotherFamilyDashboard() {
+  const navigate = useNavigate();
+
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -71,6 +74,15 @@ export default function MotherFamilyDashboard() {
     loadFamilyMembers();
   }, [loadFamilyMembers]);
 
+  const handleBack = () => {
+    if (window.history.state?.idx > 0) {
+      navigate(-1);
+    } else {
+      // Change this path if your dashboard route is different.
+      navigate("/dashboard");
+    }
+  };
+
   const getInitials = (name) => {
     if (typeof name !== "string" || !name.trim()) {
       return "FM";
@@ -92,6 +104,16 @@ export default function MotherFamilyDashboard() {
         <div className="family-dashboard-content">
           <header className="family-dashboard-header">
             <div className="family-dashboard-header-text">
+              <button
+                type="button"
+                className="family-back-button"
+                onClick={handleBack}
+                aria-label="Go back"
+              >
+                <span aria-hidden="true">←</span>
+                <span>Back</span>
+              </button>
+
               <span className="family-dashboard-eyebrow">
                 NURTURE AI · FAMILY SUPPORT
               </span>

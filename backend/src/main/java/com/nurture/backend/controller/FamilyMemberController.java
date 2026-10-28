@@ -18,7 +18,10 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/family-members")
 @CrossOrigin(
-        origins = "http://localhost:5173",
+        origins = {
+                "http://localhost:5173",
+                "https://nurture-ai-frontend.vercel.app"
+        },
         allowCredentials = "true"
 )
 public class FamilyMemberController {

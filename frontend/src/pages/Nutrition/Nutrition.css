@@ -1086,3 +1086,52 @@
     gap: 4px;
   }
 }
+
+/* Nutrition Analyzer Back Button - append below your existing Nutrition.css */
+.nutrition-back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin: 0 0 18px;
+  padding: 10px 17px;
+  border: 1px solid #e6d8ee;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #684879;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(104, 72, 121, 0.07);
+  transition: background-color 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nutrition-back-button span:first-child {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.nutrition-back-button:hover {
+  background: #f6eef9;
+  border-color: #c9add8;
+  color: #4d2f5e;
+  transform: translateX(-2px);
+  box-shadow: 0 5px 14px rgba(104, 72, 121, 0.12);
+}
+
+.nutrition-back-button:focus-visible {
+  outline: 3px solid rgba(157, 112, 180, 0.35);
+  outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .nutrition-back-button {
+    margin-bottom: 14px;
+    padding: 9px 14px;
+    border-radius: 10px;
+  }
+}
+

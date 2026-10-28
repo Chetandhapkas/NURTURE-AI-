@@ -1,5 +1,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Nutrition.css";
 import Sidebar from "../../components/sidebar/Sidebar.jsx";
 import API from "../../services/api";
@@ -87,6 +88,7 @@ const getErrorMessage = (error) => {
 };
 
 export default function Nutrition() {
+  const navigate = useNavigate();
   const userId = localStorage.getItem("userId");
 
   const [mealType, setMealType] = useState("Breakfast");
@@ -392,6 +394,16 @@ export default function Nutrition() {
       <Sidebar />
 
       <main className="nutrition-page">
+        <button
+          className="nutrition-back-button"
+          type="button"
+          onClick={() => navigate(-1)}
+          aria-label="Go back"
+        >
+          <span aria-hidden="true">←</span>
+          <span>Back</span>
+        </button>
+
         <header className="nutrition-header">
           <div>
             <span className="nutrition-eyebrow">

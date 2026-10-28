@@ -1,7 +1,7 @@
+
 /* =========================================================
-   APPOINTMENT PAGE
-   NURTURE AI
-   Matches Appointment History Design
+   APPOINTMENT PAGE — NURTURE AI
+   Complete responsive CSS
 ========================================================= */
 
 .appointment-page-layout {
@@ -16,10 +16,7 @@
     #f6f8fc;
 }
 
-
-/* =========================================================
-   MAIN CONTENT
-========================================================= */
+/* MAIN CONTENT */
 
 .appointment-page-main {
   flex: 1;
@@ -32,548 +29,421 @@
   max-width: 1450px;
   margin: 0 auto;
   padding: 28px 32px 50px;
-  box-sizing: border-box;
 }
 
-
-/* =========================================================
-   PAGE HEADER
-========================================================= */
+/* PAGE HEADER */
 
 .appointment-page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 18px;
   margin-bottom: 24px;
 }
 
 .appointment-heading {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
-
-/* =========================================================
-   TITLE ICON
-========================================================= */
-
 .appointment-title-icon {
   width: 54px;
   height: 54px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   flex-shrink: 0;
-
   border-radius: 16px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #eff6ff,
-      #dbeafe
-    );
-
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
   border: 1px solid #dbeafe;
-
-  box-shadow:
-    0 8px 22px rgba(37, 99, 235, 0.10);
-
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.10);
   font-size: 25px;
 }
 
-
-/* =========================================================
-   PAGE LABEL
-========================================================= */
-
-.appointment-page-label {
-  display: block;
-
-  margin-bottom: 4px;
-
-  color: #2563eb;
-
-  font-size: 9px;
-  font-weight: 800;
-
-  letter-spacing: 1.1px;
-}
-
-
-/* =========================================================
-   PAGE TITLE
-========================================================= */
-
 .appointment-heading h1 {
   margin: 0;
-
   color: #172554;
-
   font-size: 27px;
   line-height: 1.2;
-
   font-weight: 750;
-
   letter-spacing: -0.6px;
+  overflow-wrap: anywhere;
 }
-
 
 .appointment-heading p {
   margin: 5px 0 0;
-
   color: #64748b;
-
   font-size: 11px;
   line-height: 1.5;
 }
 
+/* HEADER BUTTONS */
 
-/* =========================================================
-   ALERTS
-========================================================= */
+.appointment-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  gap: 9px;
+}
+
+/* BACK BUTTON */
+
+.appointment-back-btn {
+  min-height: 44px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #dbe3ed;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #475569;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 5px 16px rgba(15, 23, 42, 0.04);
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.appointment-back-arrow {
+  font-size: 19px;
+  line-height: 1;
+}
+
+.appointment-back-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #1e40af;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.07);
+}
+
+.appointment-back-btn:active {
+  transform: translateY(0);
+}
+
+/* APPOINTMENT HISTORY BUTTON */
+
+.history-navigation-btn {
+  min-height: 44px;
+  padding: 0 17px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #2563eb;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 5px 16px rgba(15, 23, 42, 0.05);
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.history-navigation-btn:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.1);
+}
+
+.history-navigation-btn:active {
+  transform: translateY(0);
+}
+
+.appointment-back-btn:focus-visible,
+.history-navigation-btn:focus-visible {
+  outline: 3px solid rgba(59, 130, 246, 0.22);
+  outline-offset: 2px;
+}
+
+/* ALERTS */
 
 .appointment-alert {
   display: flex;
   align-items: center;
-
   gap: 12px;
-
   margin-bottom: 20px;
-
   padding: 13px 16px;
-
   border-radius: 13px;
 }
-
-
-/* SUCCESS */
 
 .appointment-success {
   border: 1px solid #bbf7d0;
   background: #f0fdf4;
 }
 
-
-.success-icon {
+.success-icon,
+.error-icon {
   width: 34px;
   height: 34px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   flex-shrink: 0;
-
   border-radius: 50%;
-
-  background: #dcfce7;
-
-  color: #16a34a;
-
   font-size: 16px;
   font-weight: 800;
 }
 
+.success-icon {
+  background: #dcfce7;
+  color: #16a34a;
+}
 
 .appointment-success strong {
   color: #166534;
   font-size: 12px;
 }
 
-
 .appointment-success p {
   margin: 3px 0 0;
-
   color: #15803d;
-
   font-size: 10px;
+  line-height: 1.5;
 }
-
-
-/* ERROR */
 
 .appointment-error {
   border: 1px solid #fecaca;
   background: #fff7f7;
 }
 
-
 .error-icon {
-  width: 34px;
-  height: 34px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  flex-shrink: 0;
-
-  border-radius: 50%;
-
   background: #fee2e2;
-
   color: #dc2626;
-
-  font-size: 15px;
-  font-weight: 800;
 }
-
 
 .appointment-error strong {
   color: #991b1b;
   font-size: 12px;
 }
 
-
 .appointment-error p {
   margin: 3px 0 0;
-
   color: #b91c1c;
-
   font-size: 10px;
+  line-height: 1.5;
 }
 
-
-/* =========================================================
-   MAIN CARD
-========================================================= */
+/* MAIN CARD */
 
 .appointment-form-card {
   overflow: hidden;
-
   border: 1px solid #e2e8f0;
-
   border-radius: 18px;
-
   background: #ffffff;
-
-  box-shadow:
-    0 10px 35px rgba(15, 23, 42, 0.055);
+  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.055);
 }
 
-
-/* =========================================================
-   CARD HEADER
-========================================================= */
+/* CARD HEADER */
 
 .form-card-header {
   display: flex;
   align-items: center;
-
   gap: 13px;
-
   padding: 21px 24px;
-
   border-bottom: 1px solid #edf1f6;
-
-  background:
-    linear-gradient(
-      135deg,
-      #ffffff,
-      #f8fbff
-    );
+  background: linear-gradient(135deg, #ffffff, #f8fbff);
 }
-
 
 .form-header-icon {
   width: 44px;
   height: 44px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   flex-shrink: 0;
-
   border-radius: 12px;
-
   background: #eff6ff;
-
   border: 1px solid #dbeafe;
-
   font-size: 20px;
 }
 
-
-.card-small-label {
-  display: block;
-
-  margin-bottom: 3px;
-
-  color: #2563eb;
-
-  font-size: 8px;
-
-  font-weight: 800;
-
-  letter-spacing: 1px;
-}
-
-
 .form-card-header h2 {
   margin: 0;
-
   color: #1e293b;
-
   font-size: 17px;
-
   font-weight: 750;
 }
 
-
 .form-card-header p {
   margin: 4px 0 0;
-
   color: #94a3b8;
-
   font-size: 10px;
+  line-height: 1.5;
 }
 
-
-/* =========================================================
-   FORM
-========================================================= */
+/* FORM */
 
 .appointment-form {
   padding: 24px;
 }
 
-
-/* =========================================================
-   FORM SECTION
-========================================================= */
-
 .form-section {
   padding: 21px 0;
-
   border-bottom: 1px solid #eef2f7;
 }
-
 
 .form-section:first-child {
   padding-top: 0;
 }
 
-
 .form-section:last-of-type {
   padding-bottom: 20px;
 }
 
-
-/* =========================================================
-   SECTION TITLE
-========================================================= */
+/* SECTION TITLE */
 
 .form-section-title {
   display: flex;
   align-items: center;
-
   gap: 11px;
-
   margin-bottom: 18px;
 }
-
 
 .section-icon {
   width: 36px;
   height: 36px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   flex-shrink: 0;
-
   border-radius: 10px;
-
   background: #f8fafc;
-
   border: 1px solid #e2e8f0;
-
   font-size: 16px;
 }
 
-
 .form-section-title h3 {
   margin: 0;
-
   color: #334155;
-
   font-size: 13px;
-
   font-weight: 750;
 }
 
-
 .form-section-title p {
   margin: 3px 0 0;
-
   color: #94a3b8;
-
   font-size: 9px;
+  line-height: 1.5;
 }
 
-
-/* =========================================================
-   FORM GRID
-========================================================= */
+/* FORM GRID */
 
 .form-grid {
   display: grid;
-
-  grid-template-columns:
-    repeat(2, minmax(0, 1fr));
-
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
 }
-
-
-/* =========================================================
-   FORM GROUP
-========================================================= */
 
 .form-group {
   min-width: 0;
 }
 
-
 .form-group label {
   display: block;
-
   margin-bottom: 7px;
-
   color: #475569;
-
   font-size: 10px;
-
   font-weight: 700;
 }
 
-
 .form-group label span {
   margin-left: 3px;
-
   color: #ef4444;
 }
 
-
-/* =========================================================
-   INPUT WRAPPER
-========================================================= */
+/* INPUT WRAPPER */
 
 .input-wrapper {
   position: relative;
   width: 100%;
+  min-width: 0;
   display: flex;
   align-items: center;
 }
-
-
-/* =========================================================
-   INPUT ICON
-========================================================= */
 
 .input-icon {
   position: absolute;
   left: 13px;
   top: 50%;
   transform: translateY(-50%);
-
   width: 18px;
   height: 18px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
-  z-index: 5;
-
+  z-index: 1;
   font-size: 14px;
   line-height: 1;
-
   pointer-events: none;
 }
 
-
-/* =========================================================
-   INPUT / TEXTAREA
-========================================================= */
+/* INPUTS, SELECTS AND TEXTAREA */
 
 .input-wrapper input,
+.input-wrapper select,
 .input-wrapper textarea {
   width: 100%;
-  box-sizing: border-box;
-
+  min-width: 0;
   border: 1px solid #dbe3ed;
   border-radius: 10px;
-
   background: #fdfefe;
   color: #334155;
-
   font-family: inherit;
   font-size: 11px;
-
   outline: none;
-
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
     background 0.2s ease;
 }
 
-
-/* =========================================================
-   NORMAL INPUT
-========================================================= */
-
-.input-wrapper input {
+.input-wrapper input,
+.input-wrapper select {
   height: 43px;
-
-  /*
-    IMPORTANT:
-    Leave enough space for the emoji/icon.
-  */
   padding: 0 12px 0 42px;
 }
 
-
-/* =========================================================
-   TEXTAREA
-========================================================= */
+.input-wrapper select {
+  cursor: pointer;
+}
 
 .input-wrapper textarea {
   min-height: 85px;
-
   padding: 12px 12px 12px 42px;
-
   resize: vertical;
-
   line-height: 1.5;
 }
 
-
-/* =========================================================
-   INPUT FOCUS
-========================================================= */
-
 .input-wrapper input:focus,
+.input-wrapper select:focus,
 .input-wrapper textarea:focus {
   border-color: #60a5fa;
-
   background: #ffffff;
-
-  box-shadow:
-    0 0 0 3px rgba(59, 130, 246, 0.09);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.09);
 }
-
-
-/* =========================================================
-   READ ONLY
-========================================================= */
 
 .input-wrapper input[readonly] {
   background: #f8fafc;
@@ -581,20 +451,10 @@
   cursor: default;
 }
 
-
-/* =========================================================
-   PLACEHOLDER
-========================================================= */
-
 .input-wrapper input::placeholder,
 .input-wrapper textarea::placeholder {
   color: #cbd5e1;
 }
-
-
-/* =========================================================
-   TEXTAREA ICON
-========================================================= */
 
 .textarea-wrapper {
   align-items: flex-start;
@@ -605,268 +465,118 @@
   transform: none;
 }
 
-/* =========================================================
-   STATUS INFORMATION
-========================================================= */
+/* STATUS INFORMATION */
 
 .appointment-status-info {
   display: flex;
   align-items: flex-start;
-
   gap: 11px;
-
   margin-top: 21px;
-
   padding: 14px 16px;
-
   border: 1px solid #dbeafe;
-
   border-radius: 11px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #eff6ff,
-      #f8fbff
-    );
+  background: linear-gradient(135deg, #eff6ff, #f8fbff);
 }
-
 
 .status-info-icon {
   flex-shrink: 0;
-
   font-size: 15px;
 }
 
-
 .appointment-status-info strong {
   display: block;
-
   margin-bottom: 4px;
-
   color: #1e40af;
-
   font-size: 10px;
 }
 
-
 .appointment-status-info p {
   margin: 0;
-
   color: #64748b;
-
   font-size: 9px;
-
-  line-height: 1.6;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
 }
-
 
 .appointment-status-info b {
   color: #2563eb;
 }
 
-
-/* =========================================================
-   FORM ACTIONS
-========================================================= */
+/* FORM ACTIONS */
 
 .appointment-form-actions {
   display: flex;
-
   align-items: center;
-
   justify-content: flex-end;
-
   gap: 10px;
-
   padding-top: 22px;
 }
 
-
 .cancel-appointment-btn,
 .save-appointment-btn {
-  height: 42px;
-
+  min-height: 42px;
   padding: 0 18px;
-
   border-radius: 9px;
-
   font-family: inherit;
-
   font-size: 11px;
-
   font-weight: 700;
-
   cursor: pointer;
-
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
-    background 0.2s ease;
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
-/* =========================================================
-   APPOINTMENT HISTORY BUTTON
-   Add Appointment Page
-========================================================= */
+/* CANCEL BUTTON */
 
-.history-navigation-btn {
-  height: 44px;
-  padding: 0 17px;
+.cancel-appointment-btn {
+  border: 1px solid #dbe3ed;
+  background: #ffffff;
+  color: #64748b;
+}
 
+.cancel-appointment-btn:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+/* SAVE BUTTON */
+
+.save-appointment-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-
-  border: 1px solid #dbeafe;
-  border-radius: 10px;
-
-  background: #ffffff;
-  color: #2563eb;
-
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 700;
-
-  cursor: pointer;
-  white-space: nowrap;
-
-  box-shadow: 0 5px 16px rgba(15, 23, 42, 0.05);
-
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-/* Hover */
-.history-navigation-btn:hover {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  color: #1d4ed8;
-
-  transform: translateY(-1px);
-
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.1);
-}
-
-/* Click */
-.history-navigation-btn:active {
-  transform: translateY(0);
-}
-
-/* Focus */
-.history-navigation-btn:focus-visible {
-  outline: none;
-
-  border-color: #60a5fa;
-
-  box-shadow:
-    0 0 0 3px rgba(59, 130, 246, 0.12);
-}
-
-/* Responsive */
-@media (max-width: 850px) {
-  .history-navigation-btn {
-    width: 100%;
-    height: 43px;
-  }
-}
-
-
-/* =========================================================
-   CANCEL BUTTON
-========================================================= */
-
-.cancel-appointment-btn {
-  border: 1px solid #dbe3ed;
-
-  background: #ffffff;
-
-  color: #64748b;
-}
-
-
-.cancel-appointment-btn:hover {
-  background: #f8fafc;
-
-  border-color: #cbd5e1;
-}
-
-
-/* =========================================================
-   SAVE BUTTON
-========================================================= */
-
-.save-appointment-btn {
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  gap: 8px;
-
   min-width: 155px;
-
   border: 1px solid #2563eb;
-
-  background:
-    linear-gradient(
-      135deg,
-      #2563eb,
-      #3b82f6
-    );
-
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
   color: #ffffff;
-
-  box-shadow:
-    0 7px 18px rgba(37, 99, 235, 0.20);
+  box-shadow: 0 7px 18px rgba(37, 99, 235, 0.20);
 }
 
-
-.save-appointment-btn:hover {
+.save-appointment-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-
-  box-shadow:
-    0 10px 23px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 10px 23px rgba(37, 99, 235, 0.25);
 }
-
-
-/* =========================================================
-   DISABLED
-========================================================= */
 
 .cancel-appointment-btn:disabled,
 .save-appointment-btn:disabled {
   opacity: 0.6;
-
   cursor: not-allowed;
-
   transform: none;
 }
 
-
-/* =========================================================
-   LOADER
-========================================================= */
+/* LOADER */
 
 .button-loader {
   width: 13px;
   height: 13px;
-
   border: 2px solid rgba(255, 255, 255, 0.35);
-
   border-top-color: #ffffff;
-
   border-radius: 50%;
-
-  animation:
-    buttonSpin 0.7s linear infinite;
+  animation: buttonSpin 0.7s linear infinite;
 }
-
 
 @keyframes buttonSpin {
   to {
@@ -874,13 +584,9 @@
   }
 }
 
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
+/* TABLET */
 
 @media (max-width: 1000px) {
-
   .appointment-page-main {
     margin-left: 0;
   }
@@ -888,38 +594,61 @@
   .appointment-page-content {
     padding: 24px 24px 45px;
   }
+
+  .appointment-page-header {
+    align-items: flex-start;
+  }
+
+  .appointment-header-actions {
+    flex-wrap: wrap;
+  }
 }
 
-
 @media (max-width: 850px) {
-
   .appointment-page-content {
     padding: 22px 20px 40px;
   }
 
   .form-grid {
     grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .appointment-page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .appointment-header-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(90px, 0.7fr) minmax(0, 1.3fr);
+  }
+
+  .appointment-back-btn,
+  .history-navigation-btn {
+    width: 100%;
+    min-width: 0;
   }
 }
 
+/* MOBILE */
 
 @media (max-width: 600px) {
-
   .appointment-page-content {
     padding: 18px 14px 30px;
   }
 
   .appointment-heading {
     align-items: flex-start;
+    gap: 11px;
   }
 
   .appointment-title-icon {
-    width: 48px;
-    height: 48px;
-
-    border-radius: 14px;
-
-    font-size: 22px;
+    width: 46px;
+    height: 46px;
+    border-radius: 13px;
+    font-size: 21px;
   }
 
   .appointment-heading h1 {
@@ -928,8 +657,21 @@
 
   .appointment-heading p {
     font-size: 10px;
-
     line-height: 1.5;
+  }
+
+  .appointment-header-actions {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .appointment-back-btn,
+  .history-navigation-btn {
+    min-height: 42px;
+    padding: 0 10px;
+    font-size: 10px;
+    white-space: normal;
+    text-align: center;
   }
 
   .appointment-form-card {
@@ -937,25 +679,143 @@
   }
 
   .appointment-form {
-    padding: 18px;
+    padding: 17px 15px;
   }
 
   .form-card-header {
-    padding: 18px;
+    align-items: flex-start;
+    padding: 17px 15px;
+    gap: 11px;
+  }
+
+  .form-header-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .form-card-header h2 {
+    font-size: 15px;
+  }
+
+  .form-card-header p {
+    font-size: 10px;
+  }
+
+  .form-section {
+    padding: 18px 0;
   }
 
   .form-section-title {
     align-items: flex-start;
+    gap: 9px;
+    margin-bottom: 14px;
+  }
+
+  .section-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    font-size: 14px;
+  }
+
+  .form-section-title h3 {
+    font-size: 12px;
+  }
+
+  .form-section-title p {
+    font-size: 9px;
+  }
+
+  .input-wrapper input,
+  .input-wrapper select {
+    height: 44px;
+    font-size: 12px;
+  }
+
+  .input-wrapper textarea {
+    font-size: 12px;
+  }
+
+  .appointment-alert {
+    align-items: flex-start;
+    padding: 12px;
+    gap: 9px;
+  }
+
+  .appointment-status-info {
+    padding: 12px;
+    gap: 9px;
   }
 
   .appointment-form-actions {
     flex-direction: column-reverse;
-
+    align-items: stretch;
     width: 100%;
+    gap: 9px;
+    padding-top: 19px;
   }
 
   .cancel-appointment-btn,
   .save-appointment-btn {
     width: 100%;
+    min-height: 44px;
+  }
+}
+
+/* VERY SMALL MOBILE SCREENS */
+
+@media (max-width: 380px) {
+  .appointment-page-content {
+    padding: 15px 10px 25px;
+  }
+
+  .appointment-heading {
+    gap: 9px;
+  }
+
+  .appointment-title-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 19px;
+  }
+
+  .appointment-heading h1 {
+    font-size: 20px;
+  }
+
+  .appointment-header-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .appointment-form {
+    padding: 15px 12px;
+  }
+
+  .form-card-header {
+    padding: 15px 12px;
+  }
+
+  .appointment-back-btn,
+  .history-navigation-btn {
+    min-height: 42px;
+  }
+}
+
+/* ACCESSIBILITY */
+
+@media (prefers-reduced-motion: reduce) {
+  .appointment-back-btn,
+  .history-navigation-btn,
+  .cancel-appointment-btn,
+  .save-appointment-btn,
+  .input-wrapper input,
+  .input-wrapper select,
+  .input-wrapper textarea {
+    transition: none;
+  }
+
+  .button-loader {
+    animation-duration: 1.5s;
   }
 }

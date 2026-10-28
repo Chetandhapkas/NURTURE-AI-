@@ -14,13 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(
-        origins = {
-                "http://localhost:5173",
-                "http://10.157.64.217:5173"
-        },
-        allowCredentials = "true"
-)
+
 public class PasswordResetController {
 
     private final PasswordResetService passwordResetService;

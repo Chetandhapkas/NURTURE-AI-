@@ -1,10 +1,13 @@
 
 import React, { useCallback, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import API from "../../services/api";
 import "./Healthcare.css";
 import Sidebar from "../../components/sidebar/Sidebar";
 
 const Healthcare = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
     const userId = localStorage.getItem("userId");
 
     // STATES
@@ -35,6 +38,15 @@ const Healthcare = () => {
     const [scheduledDate, setScheduledDate] = useState("");
     const [vaccineNotes, setVaccineNotes] = useState("");
 
+    // BACK BUTTON
+    const handleBack = () => {
+        if (location.key && location.key !== "default") {
+            navigate(-1);
+        } else {
+            navigate("/dashboard");
+        }
+    };
+
     // LOAD HEALTHCARE DATA
     const loadHealthcareData = useCallback(async () => {
         if (!userId) {
@@ -64,16 +76,7 @@ const Healthcare = () => {
                     : []
             );
 
-            console.log(
-                "Today's Medicine Logs:",
-                medicineResponse.data
-            );
-
-            medicineResponse.data?.forEach((log) => {
-                console.log("Medicine Log:", log);
-                console.log("Medicine:", log.medicine);
-                console.log("Medicine ID:", log.medicine?.id);
-            });
+            console.log("Today's Medicine Logs:", medicineResponse.data);
         } catch (error) {
             console.error(
                 "Healthcare API Error:",
@@ -180,8 +183,6 @@ const Healthcare = () => {
 
     // STOP MEDICINE
     const stopMedicine = async (medicineId) => {
-        console.log("Stop Medicine ID:", medicineId);
-
         if (!medicineId) {
             alert("Medicine ID not found.");
             return;
@@ -266,16 +267,13 @@ const Healthcare = () => {
             return;
         }
 
-        // CHECK DUPLICATE REMINDER TIMES
         const selectedTimes = [
             reminderTime,
             reminderTime2,
             reminderTime3
         ].filter(Boolean);
 
-        const uniqueTimes = new Set(selectedTimes);
-
-        if (uniqueTimes.size !== selectedTimes.length) {
+        if (new Set(selectedTimes).size !== selectedTimes.length) {
             alert("Reminder times must be different.");
             return;
         }
@@ -294,8 +292,6 @@ const Healthcare = () => {
                 reminderTime3: reminderTime3 || null,
                 instructions: instructions.trim()
             };
-
-            console.log("Medicine data:", medicineData);
 
             await API.post(`/medicines/${userId}`, medicineData);
 
@@ -402,7 +398,6 @@ const Healthcare = () => {
         );
     }
 
-    // MAIN UI
     return (
         <div className="healthcare-layout">
             <Sidebar />
@@ -412,15 +407,29 @@ const Healthcare = () => {
 
                     {/* HEADER */}
                     <div className="healthcare-header">
-                        <div>
-                            <h1>Healthcare</h1>
-                            <p>
-                                Manage your pregnancy medicines
-                                and vaccinations
-                            </p>
+                        <div className="healthcare-heading-group">
+                            <button
+                                type="button"
+                                className="healthcare-back-button"
+                                onClick={handleBack}
+                                aria-label="Go back"
+                                title="Go back"
+                            >
+                                <span aria-hidden="true">←</span>
+                                <span>Back</span>
+                            </button>
+
+                            <div className="healthcare-heading-text">
+                                <h1>Healthcare</h1>
+                                <p>
+                                    Manage your pregnancy medicines
+                                    and vaccinations
+                                </p>
+                            </div>
                         </div>
 
                         <button
+                            type="button"
                             className="refresh-button"
                             onClick={handleRefresh}
                             disabled={refreshing}
@@ -434,12 +443,11 @@ const Healthcare = () => {
                         <div className="section-header">
                             <div>
                                 <h2>💉 Vaccination Tracker</h2>
-                                <p>
-                                    Track your recommended vaccinations
-                                </p>
+                                <p>Track your recommended vaccinations</p>
                             </div>
 
                             <button
+                                type="button"
                                 className="add-button"
                                 onClick={() => setVaccineModal(true)}
                             >
@@ -529,6 +537,7 @@ const Healthcare = () => {
 
                                             {!locked && !completed && (
                                                 <button
+                                                    type="button"
                                                     className="taken-button"
                                                     onClick={() =>
                                                         markVaccinationTaken(vaccine.id)
@@ -553,6 +562,7 @@ const Healthcare = () => {
                             </div>
 
                             <button
+                                type="button"
                                 className="add-button"
                                 onClick={() => setMedicineModal(true)}
                             >
@@ -634,6 +644,7 @@ const Healthcare = () => {
                                                 </div>
                                             ) : (
                                                 <button
+                                                    type="button"
                                                     className="taken-button"
                                                     onClick={() =>
                                                         markMedicineTaken(log.id)
@@ -644,6 +655,7 @@ const Healthcare = () => {
                                             )}
 
                                             <button
+                                                type="button"
                                                 className="stop-button"
                                                 onClick={() => stopMedicine(medicineId)}
                                                 disabled={!medicineId}
@@ -665,15 +677,24 @@ const Healthcare = () => {
                     {/* ADD MEDICINE MODAL */}
                     {medicineModal && (
                         <div className="modal-overlay">
-                            <div className="modal">
+                            <div
+                                className="modal"
+                                role="dialog"
+                                aria-modal="true"
+                                aria-labelledby="medicine-modal-title"
+                            >
                                 <div className="modal-header">
                                     <div>
-                                        <h2>Add Medicine</h2>
+                                        <h2 id="medicine-modal-title">
+                                            Add Medicine
+                                        </h2>
                                         <p>Set your medicine schedule</p>
                                     </div>
 
                                     <button
+                                        type="button"
                                         className="close-button"
+                                        aria-label="Close medicine form"
                                         onClick={() => {
                                             resetMedicineForm();
                                             setMedicineModal(false);
@@ -858,15 +879,24 @@ const Healthcare = () => {
                     {/* ADD VACCINATION MODAL */}
                     {vaccineModal && (
                         <div className="modal-overlay">
-                            <div className="modal">
+                            <div
+                                className="modal"
+                                role="dialog"
+                                aria-modal="true"
+                                aria-labelledby="vaccine-modal-title"
+                            >
                                 <div className="modal-header">
                                     <div>
-                                        <h2>Add Vaccination</h2>
+                                        <h2 id="vaccine-modal-title">
+                                            Add Vaccination
+                                        </h2>
                                         <p>Add an additional vaccination</p>
                                     </div>
 
                                     <button
+                                        type="button"
                                         className="close-button"
+                                        aria-label="Close vaccination form"
                                         onClick={() => {
                                             resetVaccineForm();
                                             setVaccineModal(false);

@@ -8,7 +8,11 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/family-members")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = {
+        "http://localhost:5173",
+        "https://nurture-ai-frontend.vercel.app",
+        "https://nurture-ai-frontend-*-chetandhapkas2707.vercel.app"
+})
 public class FamilyDashboardController {
 
     private final FamilyDashboardService familyDashboardService;
