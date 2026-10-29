@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -11,12 +12,17 @@ import {
   FaEyeSlash,
   FaShieldAlt,
   FaHome,
+  FaHeart,
+  FaBaby,
+  FaCheckCircle,
+  FaArrowRight,
+  FaLeaf,
+  FaStar,
 } from "react-icons/fa";
 
 import { FcGoogle } from "react-icons/fc";
 
 import API from "../../services/api";
-
 import "./register.css";
 
 function Register() {
@@ -38,10 +44,6 @@ function Register() {
     otp: "",
   });
 
-  // ==========================================
-  // FORMAT OTP TIMER
-  // ==========================================
-
   const formatTimer = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -51,10 +53,6 @@ function Register() {
       .padStart(2, "0")}`;
   };
 
-  // ==========================================
-  // HANDLE INPUT CHANGE
-  // ==========================================
-
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -62,32 +60,30 @@ function Register() {
       ...prev,
       [name]: value,
     }));
+
+    // A new email needs a fresh OTP.
+    if (name === "email") {
+      setOtpSent(false);
+      setTimer(0);
+      setFormData((prev) => ({
+        ...prev,
+        email: value,
+        otp: "",
+      }));
+    }
   };
 
-  // ==========================================
-  // OTP COUNTDOWN
-  // ==========================================
-
   useEffect(() => {
-    let interval;
+    if (timer <= 0) return undefined;
 
-    if (timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    }
+    const interval = setInterval(() => {
+      setTimer((prev) => Math.max(0, prev - 1));
+    }, 1000);
 
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
+    return () => clearInterval(interval);
   }, [timer]);
 
-  // ==========================================
   // SEND OTP
-  // ==========================================
-
   const handleSendOtp = async () => {
     const email = formData.email.trim();
 
@@ -96,9 +92,7 @@ function Register() {
       return;
     }
 
-    // Basic email validation
-    const emailPattern =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailPattern.test(email)) {
       alert("Please enter a valid email address.");
@@ -108,82 +102,49 @@ function Register() {
     setSendingOtp(true);
 
     try {
-      console.log("==============================");
-      console.log("SENDING OTP");
-      console.log("EMAIL:", email);
-      console.log("==============================");
-
       const response = await API.post(
         "/auth/send-otp",
-        {
-          email: email,
-        },
-        {
-          withCredentials: true,
-        }
+        { email },
+        { withCredentials: true }
       );
-
-      console.log("OTP API SUCCESS");
-      console.log("STATUS:", response.status);
-      console.log("DATA:", response.data);
 
       if (response.status === 200) {
         setOtpSent(true);
-
-        // 5 minute countdown
         setTimer(300);
+
+        setFormData((prev) => ({
+          ...prev,
+          otp: "",
+        }));
 
         alert("OTP sent successfully to your email.");
       }
     } catch (error) {
-      console.error("==============================");
-      console.error("OTP ERROR");
-      console.error("MESSAGE:", error?.message);
-      console.error("CODE:", error?.code);
-      console.error(
-        "STATUS:",
-        error?.response?.status
-      );
-      console.error(
-        "DATA:",
-        error?.response?.data
-      );
-      console.error("==============================");
+      console.error("OTP ERROR:", error);
 
       if (error.response) {
-        if (typeof error.response.data === "string") {
-          alert(error.response.data);
-        } else {
-          alert(
-            error.response.data?.message ||
-              "Unable to send OTP."
-          );
-        }
+        const data = error.response.data;
+
+        alert(
+          typeof data === "string"
+            ? data
+            : data?.message || "Unable to send OTP."
+        );
       } else if (error.request) {
         alert(
-          "Unable to connect to the server.\n\n" +
-            "Please make sure Nurture AI and the backend server are running."
+          "Unable to connect to the server. Please try again."
         );
       } else {
-        alert(
-          "Something went wrong while sending OTP."
-        );
+        alert("Something went wrong while sending OTP.");
       }
     } finally {
       setSendingOtp(false);
     }
   };
 
-  // ==========================================
   // REGISTER
-  // ==========================================
-
   const handleRegister = async (e) => {
     e.preventDefault();
-
-    // ------------------------------
-    // Validation
-    // ------------------------------
 
     if (
       !formData.fullName.trim() ||
@@ -199,9 +160,7 @@ function Register() {
     }
 
     if (!otpSent) {
-      alert(
-        "Please verify your email with OTP first."
-      );
+      alert("Please verify your email with OTP first.");
       return;
     }
 
@@ -210,17 +169,12 @@ function Register() {
       return;
     }
 
-    if (formData.phoneNumber.length !== 10) {
-      alert(
-        "Please enter a valid 10-digit phone number."
-      );
+    if (!/^\d{10}$/.test(formData.phoneNumber)) {
+      alert("Please enter a valid 10-digit phone number.");
       return;
     }
 
-    if (
-      formData.password !==
-      formData.confirmPassword
-    ) {
+    if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match.");
       return;
     }
@@ -228,10 +182,6 @@ function Register() {
     setLoading(true);
 
     try {
-      console.log("==============================");
-      console.log("REGISTER REQUEST");
-      console.log("==============================");
-
       const requestData = {
         fullName: formData.fullName.trim(),
         email: formData.email.trim(),
@@ -241,32 +191,18 @@ function Register() {
         otp: formData.otp.trim(),
       };
 
-      console.log("Request:", requestData);
-
       const response = await API.post(
         "/auth/register",
         requestData,
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
-
-      console.log("REGISTER RESPONSE:");
-      console.log(response.data);
-
-      // ==========================================
-      // REGISTRATION SUCCESS
-      // ==========================================
 
       if (
         response.status === 200 &&
         response.data === "Registration Successful"
       ) {
-        alert(
-          "Account created successfully. Please login."
-        );
+        alert("Account created successfully. Please login.");
 
-        // Clear form
         setFormData({
           fullName: "",
           email: "",
@@ -280,65 +216,39 @@ function Register() {
         setOtpSent(false);
         setTimer(0);
 
-        // Go to login
         navigate("/login");
       } else {
         alert(
-          response.data ||
-            "Registration failed."
+          typeof response.data === "string"
+            ? response.data
+            : response.data?.message || "Registration failed."
         );
       }
     } catch (error) {
-      console.error(
-        "REGISTER ERROR:",
-        error
-      );
+      console.error("REGISTER ERROR:", error);
 
       if (error.response) {
-        console.error(
-          "STATUS:",
-          error.response.status
-        );
+        const data = error.response.data;
 
-        console.error(
-          "DATA:",
-          error.response.data
+        alert(
+          typeof data === "string"
+            ? data
+            : data?.message || "Registration failed."
         );
-
-        if (
-          typeof error.response.data ===
-          "string"
-        ) {
-          alert(error.response.data);
-        } else {
-          alert(
-            error.response.data?.message ||
-              "Registration failed."
-          );
-        }
       } else if (error.request) {
         alert(
-          "Unable to connect to the server.\n\n" +
-            "Please make sure Nurture AI and the backend server are running."
+          "Unable to connect to the server. Please try again."
         );
       } else {
-        alert(
-          "Something went wrong. Please try again."
-        );
+        alert("Something went wrong. Please try again.");
       }
     } finally {
       setLoading(false);
     }
   };
 
-  // ==========================================
-  // PHONE NUMBER
-  // ==========================================
-
   const handlePhoneChange = (e) => {
-    const value = e.target.value
-      .replace(/\D/g, "")
-      .slice(0, 10);
+    const value = e.target.value.replace(/\D/g, "").slice(0, 10);
 
     setFormData((prev) => ({
       ...prev,
@@ -346,14 +256,8 @@ function Register() {
     }));
   };
 
-  // ==========================================
-  // OTP
-  // ==========================================
-
   const handleOtpChange = (e) => {
-    const value = e.target.value
-      .replace(/\D/g, "")
-      .slice(0, 6);
+    const value = e.target.value.replace(/\D/g, "").slice(0, 6);
 
     setFormData((prev) => ({
       ...prev,
@@ -361,119 +265,183 @@ function Register() {
     }));
   };
 
-  // ==========================================
-  // UI
-  // ==========================================
-
   return (
     <div className="register-container">
-
-      {/* ======================================
-          HOME BUTTON
-      ====================================== */}
-
-      <Link to="/" className="home-btn">
+      <Link to="/" className="home-btn" aria-label="Go to home">
         <FaHome />
       </Link>
 
-      {/* ======================================
-          LEFT SECTION
-      ====================================== */}
+      {/* LEFT: BRANDING AND MOTHERHOOD ILLUSTRATION */}
+      <aside className="register-left">
+        <div className="left-orb orb-one" />
+        <div className="left-orb orb-two" />
+        <div className="left-orb orb-three" />
 
-      <div className="register-left">
         <div className="overlay">
+          <div className="brand-mark">
+            <span className="brand-icon">
+              <FaHeart />
+            </span>
+            <span>Nurture <strong>AI</strong></span>
+            <span className="brand-sparkle">✦</span>
+          </div>
 
-          <h1>🤱 Nurture AI</h1>
+          <div className="hero-copy">
+            <span className="hero-eyebrow">
+              <FaLeaf /> YOUR JOURNEY, OUR CARE
+            </span>
 
-          <h2>Create Your Account</h2>
+            <h1>
+              A little care.
+              <br />
+              <span>A lifetime of love.</span>
+            </h1>
 
-          <p>
-            Join thousands of mothers using
-            AI-powered pregnancy tracking,
-            personalized wellness insights,
-            and family support throughout
-            every stage of motherhood.
-          </p>
+            <p>
+              Your motherhood journey deserves gentle guidance,
+              personalized wellness, and a caring family by your side.
+            </p>
+          </div>
 
+          <div className="mother-art" aria-label="Mother and baby illustration">
+            <div className="art-halo" />
+
+            <span className="art-heart heart-one">♥</span>
+            <span className="art-heart heart-two">✦</span>
+            <span className="art-heart heart-three">♡</span>
+            <span className="art-heart heart-four">✧</span>
+
+            <div className="art-plant plant-left">
+              <FaLeaf />
+              <FaLeaf />
+              <FaLeaf />
+            </div>
+
+            <div className="mother-illustration">
+              <div className="mother-hair" />
+              <div className="mother-face">
+                <span className="face-eye eye-left" />
+                <span className="face-eye eye-right" />
+                <span className="face-smile" />
+                <span className="face-blush blush-left" />
+                <span className="face-blush blush-right" />
+              </div>
+              <div className="mother-neck" />
+              <div className="mother-body" />
+              <div className="mother-arm" />
+              <div className="baby-wrap">
+                <div className="baby-head">
+                  <span />
+                </div>
+                <div className="baby-body" />
+              </div>
+              <div className="mother-hand" />
+            </div>
+
+            <div className="art-caption">
+              <span className="caption-heart"><FaHeart /></span>
+              <div>
+                <strong>Growing with love</strong>
+                <small>Every little moment matters</small>
+              </div>
+            </div>
+          </div>
+
+          <div className="care-points">
+            <div>
+              <span className="care-point-icon"><FaShieldAlt /></span>
+              <span>
+                <strong>Private & secure</strong>
+                <small>Your journey matters</small>
+              </span>
+            </div>
+
+            <div>
+              <span className="care-point-icon"><FaBaby /></span>
+              <span>
+                <strong>Personalized care</strong>
+                <small>Support at every step</small>
+              </span>
+            </div>
+          </div>
+
+          <div className="left-footer">
+            <span>Made with love for every mother</span>
+            <span className="footer-hearts">♥ ♥ ♥</span>
+          </div>
         </div>
-      </div>
+      </aside>
 
-      {/* ======================================
-          RIGHT SECTION
-      ====================================== */}
+      {/* RIGHT: REGISTRATION FORM */}
+      <main className="register-right">
+        <div className="mobile-brand">
+          <span className="mobile-brand-icon"><FaHeart /></span>
+          <span>Nurture <strong>AI</strong></span>
+          <span className="mobile-brand-emoji">🤱</span>
+        </div>
 
-      <div className="register-right">
+        <form className="register-form" onSubmit={handleRegister}>
+          <div className="form-heading">
+            <span className="welcome-pill">
+              <FaStar /> A beautiful journey begins here
+            </span>
 
-        <form
-          className="register-form"
-          onSubmit={handleRegister}
-        >
+            <h2>Create your <span>account</span></h2>
 
-          <h2>Register</h2>
+            <p className="subtitle">
+              Join Nurture AI for personalized pregnancy wellness
+              and family support. 💗
+            </p>
+          </div>
 
-          <p className="subtitle">
-            Begin your pregnancy wellness journey.
-          </p>
+          <div className="form-section-title">
+            <span className="section-number">01</span>
+            <span>Your details</span>
+            <span className="section-line" />
+          </div>
 
-          {/* ==================================
-              FULL NAME
-          ================================== */}
-
+          {/* FULL NAME */}
           <div className="input-group">
-
-            <label>Full Name</label>
-
+            <label htmlFor="fullName">Full Name</label>
             <div className="input-box">
-
               <FaUser className="input-icon" />
-
               <input
+                id="fullName"
                 type="text"
                 name="fullName"
                 value={formData.fullName}
                 onChange={handleChange}
                 placeholder="Enter your full name"
                 autoComplete="name"
+                maxLength={100}
                 required
               />
-
             </div>
-
           </div>
 
-          {/* ==================================
-              EMAIL
-          ================================== */}
-
+          {/* EMAIL */}
           <div className="input-group">
-
-            <label>Email Address</label>
-
+            <label htmlFor="email">Email Address</label>
             <div className="input-box">
-
               <FaEnvelope className="input-icon" />
-
               <input
+                id="email"
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="Enter your email"
+                placeholder="you@example.com"
                 autoComplete="email"
                 required
               />
-
               <button
                 type="button"
                 className="otp-btn"
-                disabled={
-                  sendingOtp || timer > 0
-                }
+                disabled={sendingOtp || timer > 0}
                 onClick={handleSendOtp}
               >
-
                 {sendingOtp ? (
-                  <span className="small-loader"></span>
+                  <span className="small-loader" />
                 ) : timer > 0 ? (
                   formatTimer(timer)
                 ) : otpSent ? (
@@ -481,294 +449,207 @@ function Register() {
                 ) : (
                   "Send OTP"
                 )}
-
               </button>
-
             </div>
-
+            <p className="field-hint">
+              <FaShieldAlt /> We'll use this email to verify your account.
+            </p>
           </div>
 
-          {/* ==================================
-              OTP
-          ================================== */}
-
+          {/* OTP */}
           {otpSent && (
-            <div className="input-group">
-
-              <label>Email OTP</label>
-
+            <div className="input-group otp-group">
+              <label htmlFor="otp">Email Verification Code</label>
               <div className="input-box">
-
                 <FaShieldAlt className="input-icon" />
-
                 <input
+                  id="otp"
                   type="text"
                   name="otp"
                   value={formData.otp}
                   onChange={handleOtpChange}
                   placeholder="Enter 6-digit OTP"
                   inputMode="numeric"
-                  maxLength="6"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  pattern="[0-9]{6}"
                   required
                 />
-
+                <span className="verified-indicator">
+                  <FaCheckCircle />
+                </span>
               </div>
-
               <p className="otp-info">
-                OTP has been sent to your email.
+                ✨ Enter the code sent to your email.
+                {timer > 0 && ` Expires in ${formatTimer(timer)} on this form timer.`}
               </p>
-
             </div>
           )}
 
-          {/* ==================================
-              PHONE
-          ================================== */}
-
+          {/* PHONE */}
           <div className="input-group">
-
-            <label>Phone Number</label>
-
+            <label htmlFor="phoneNumber">Phone Number</label>
             <div className="input-box">
-
               <FaPhone className="input-icon" />
-
               <input
+                id="phoneNumber"
                 type="tel"
                 name="phoneNumber"
                 value={formData.phoneNumber}
                 onChange={handlePhoneChange}
-                placeholder="Enter phone number"
+                placeholder="Enter 10-digit phone number"
                 inputMode="numeric"
-                maxLength="10"
+                autoComplete="tel-national"
+                maxLength={10}
+                pattern="[0-9]{10}"
                 required
               />
-
             </div>
-
           </div>
 
-          {/* ==================================
-              ROLE
-          ================================== */}
-
+          {/* ROLE */}
           <div className="input-group">
-
-            <label>Role</label>
-
+            <label htmlFor="role">I am registering as</label>
             <div className="input-box">
-
               <FaUserTag className="input-icon" />
-
               <select
+                id="role"
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
                 required
               >
-
-                <option value="">
-                  Select Role
-                </option>
-
-                <option value="Mother">
-                  Mother
-                </option>
-
-                <option value="Family Member">
-                  Family Member
-                </option>
-
+                <option value="">Choose your role</option>
+                <option value="Mother">Mother 🤱</option>
+                <option value="Family Member">Family Member 💗</option>
               </select>
-
             </div>
-
           </div>
 
-          {/* ==================================
-              PASSWORD
-          ================================== */}
+          <div className="form-section-title password-section-title">
+            <span className="section-number">02</span>
+            <span>Protect your account</span>
+            <span className="section-line" />
+          </div>
 
+          {/* PASSWORD */}
           <div className="input-group">
-
-            <label>Password</label>
-
+            <label htmlFor="password">Create Password</label>
             <div className="input-box">
-
               <FaLock className="input-icon" />
-
               <input
-                type={
-                  showPassword
-                    ? "text"
-                    : "password"
-                }
+                id="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="Create Password"
+                placeholder="Create a strong password"
                 autoComplete="new-password"
                 required
               />
-
               <button
                 type="button"
                 className="show-btn"
-                onClick={() =>
-                  setShowPassword(
-                    !showPassword
-                  )
-                }
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
-
-                {showPassword ? (
-                  <FaEyeSlash />
-                ) : (
-                  <FaEye />
-                )}
-
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
-
             </div>
-
           </div>
 
-          {/* ==================================
-              CONFIRM PASSWORD
-          ================================== */}
-
+          {/* CONFIRM PASSWORD */}
           <div className="input-group">
-
-            <label>Confirm Password</label>
-
+            <label htmlFor="confirmPassword">Confirm Password</label>
             <div className="input-box">
-
               <FaLock className="input-icon" />
-
               <input
-                type={
-                  showPassword
-                    ? "text"
-                    : "password"
-                }
+                id="confirmPassword"
+                type={showPassword ? "text" : "password"}
                 name="confirmPassword"
-                value={
-                  formData.confirmPassword
-                }
+                value={formData.confirmPassword}
                 onChange={handleChange}
-                placeholder="Confirm Password"
+                placeholder="Enter your password again"
                 autoComplete="new-password"
                 required
               />
-
             </div>
-
+            {formData.confirmPassword &&
+              formData.password !== formData.confirmPassword && (
+                <p className="password-mismatch">
+                  Passwords do not match yet.
+                </p>
+              )}
           </div>
 
-          {/* ==================================
-              TERMS
-          ================================== */}
-
+          {/* TERMS */}
           <div className="terms">
-
             <label>
-
-              <input
-                type="checkbox"
-                required
-              />
-
+              <input type="checkbox" required />
               <span>
-                I agree to{" "}
-                <a href="/terms">
-                  Terms & Conditions
-                </a>
+                I agree to the <Link to="/terms">Terms & Conditions</Link>
+                {" "}and understand that Nurture AI provides wellness
+                information, not a substitute for professional medical care.
               </span>
-
             </label>
-
           </div>
 
-          {/* ==================================
-              REGISTER BUTTON
-          ================================== */}
-
+          {/* REGISTER */}
           <button
             className="register-btn"
             type="submit"
-            disabled={
-              loading || !otpSent
-            }
+            disabled={loading || !otpSent}
           >
-
             {loading ? (
               <>
-                <span className="button-loader"></span>
-                Creating Account...
+                <span className="button-loader" />
+                Creating your account...
               </>
             ) : (
-              "Verify OTP & Create Account"
+              <>
+                Verify & Create Account
+                <FaArrowRight className="register-arrow" />
+              </>
             )}
-
           </button>
 
           {!otpSent && (
             <p className="otp-required">
-              Please verify your email with OTP
-              before creating your account.
+              <FaShieldAlt /> Please verify your email before creating
+              your account.
             </p>
           )}
 
-          {/* ==================================
-              GOOGLE
-          ================================== */}
-
+          {/* DIVIDER */}
           <div className="divider">
-            <span>OR</span>
+            <span>OR CONTINUE WITH</span>
           </div>
 
-          <button
-            type="button"
-            className="google-btn"
-          >
-
+          {/* GOOGLE */}
+          <button type="button" className="google-btn">
             <FcGoogle className="google-icon" />
-
-            <span>
-              Continue with Google
-            </span>
-
+            <span>Continue with Google</span>
           </button>
 
-          {/* ==================================
-              LOGIN
-          ================================== */}
-
           <p className="login-link">
-
-            Already have an account?
-
-            <Link to="/login">
-              {" "}
-              Login
-            </Link>
-
+            Already part of our family?
+            <Link to="/login"> Sign in <FaArrowRight /></Link>
           </p>
 
-          {/* ==================================
-              QUOTE
-          ================================== */}
+          <div className="quote">
+            <span className="quote-heart">♡</span>
+            <p>
+              Every mother deserves personalized care,
+              because every pregnancy is unique.
+            </p>
+            <span className="quote-emoji">🌷 💗 🌷</span>
+          </div>
 
-          <p className="quote">
-            ❤️ Every mother deserves
-            personalized care because every
-            pregnancy is unique.
+          <p className="form-bottom-note">
+            <FaShieldAlt /> Your motherhood journey starts with care.
           </p>
-
         </form>
-
-      </div>
-
+      </main>
     </div>
   );
 }
