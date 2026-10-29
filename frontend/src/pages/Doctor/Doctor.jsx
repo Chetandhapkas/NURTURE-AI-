@@ -15,19 +15,19 @@ import "./Doctor.css";
 const defaultDoctors = [
   {
     id: "default-1",
-    name: "Priya Sharma",
+    name: "Rajashree P. Shelnare",
     specialty: "Pregnancy Consultation",
     fee: 499,
-    whatsapp: "9021636219",
+    whatsapp: "9665911343",
     initials: "PS",
     color: "purple",
   },
   {
     id: "default-2",
-    name: "Anand Bhagwat",
+    name: "Sujata Gujarkar",
     specialty: "Maternal Health Consultation",
     fee: 699,
-    whatsapp: "9765328630",
+    whatsapp: "9923191192",
     initials: "AB",
     color: "pink",
   },
